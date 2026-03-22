@@ -1,8 +1,8 @@
 # CELPIP Simulator — FastAPI Development Plan
 
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Date**: 2026-03-22
-**Status**: Draft — Awaiting Approval
+**Status**: In Progress — Phase 2
 
 ---
 
@@ -121,9 +121,9 @@ git commit -m "feat: add SQLAlchemy models for all domain entities"
 Configure the async database connection to TiDB (MySQL-compatible).
 
 ### Connection Strategy
-- **Driver**: `aiomysql` (async MySQL driver, TiDB-compatible)
-- **SQLAlchemy**: `create_async_engine` with `aiomysql`
-- **Session**: `AsyncSession` via `async_sessionmaker`
+- **Driver**: `PyMySQL` (pure Python MySQL driver, TiDB-compatible)
+- **SQLAlchemy**: `create_engine`
+- **Session**: `Session` via `sessionmaker` (synchronous, bridged for FastAPI)
 - **TLS**: TiDB Cloud requires SSL — configure `ssl={"ssl_ca": ...}` in connection args
 
 ### Files
@@ -288,4 +288,5 @@ uvicorn app.main:app --reload
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-03-22 | Phase 1 completed. Switched to pure Python `PyMySQL` driver. |
 | 1.0.0 | 2026-03-22 | Initial plan — 6 phases defined |
