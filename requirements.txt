@@ -1,0 +1,23 @@
+# Web framework
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+
+# Database
+sqlalchemy==2.0.40
+PyMySQL==1.1.1
+alembic==1.15.2
+
+# Configuration
+pydantic-settings==2.8.1
+
+# Authentication (Clerk JWT)
+python-jose[cryptography]==3.3.0
+httpx==0.28.1
+
+# Testing
+pytest==8.3.5
+pytest-asyncio==0.25.3
+pytest-cov==6.1.0
+
+# Dev utilities
+python-dotenv==1.1.0
