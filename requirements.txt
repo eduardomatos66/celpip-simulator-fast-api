@@ -5,6 +5,7 @@ uvicorn[standard]==0.34.0
 # Database
 sqlalchemy==2.0.40
 PyMySQL==1.1.1
+email-validator==2.1.2
 alembic==1.15.2
 
 # Configuration
