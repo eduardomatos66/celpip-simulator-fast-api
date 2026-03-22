@@ -5,12 +5,13 @@ Fetches the JWKS from Clerk's public endpoint and validates incoming Bearer toke
 """
 
 import httpx
+from typing import Optional
 from jose import jwt, JWTError
 from fastapi import HTTPException, status
 
 from app.core.config import settings
 
-_jwks_cache: dict | None = None
+_jwks_cache: Optional[dict] = None
 
 
 async def _get_jwks() -> dict:

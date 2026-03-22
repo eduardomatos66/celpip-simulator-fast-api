@@ -43,6 +43,7 @@ class OptionAnswer(Base):
 
 class TestResult(Base):
     __tablename__ = "test_result"
+    __test__ = False
 
     test_result_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     

@@ -20,6 +20,7 @@ class AreaTest(str, enum.Enum):
 
 class TestAvailable(Base):
     __tablename__ = "test_available"
+    __test__ = False
 
     test_id: Mapped[int] = mapped_column("available_test_id", primary_key=True, autoincrement=True)
     test_name: Mapped[str] = mapped_column(String(255))
@@ -31,6 +32,7 @@ class TestAvailable(Base):
 
 class TestArea(Base):
     __tablename__ = "test_area"
+    __test__ = False
 
     test_area_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     available_test_id: Mapped[Optional[int]] = mapped_column(ForeignKey("test_available.available_test_id"))
