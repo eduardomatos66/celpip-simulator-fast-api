@@ -51,18 +51,18 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+from app.core.database import engine as app_engine
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
+    We use the application's engine directly to ensure all TiDB SSL
+    connect_args are preserved.
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = app_engine
 
     with connectable.connect() as connection:
         context.configure(
