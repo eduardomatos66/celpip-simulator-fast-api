@@ -12,12 +12,12 @@ from app.services.test_result_service import get_results_for_user
 
 def test_user_service_get_or_create(db_session):
     # Setup test user
-    user = get_or_create_user(db_session, "clerk_1234", "test4@example.com", "Test User")
+    user = get_or_create_user(db_session, "clerk_123", "test@example.com", "Test User")
     assert user.id is not None
-    assert user.email == "test4@example.com"
+    assert user.email == "test@example.com"
     
     # Second fetch should return the same user, not create a duplicate
-    user_duplicate = get_or_create_user(db_session, "clerk_1234", "test4@example.com", "Test User")
+    user_duplicate = get_or_create_user(db_session, "clerk_123", "test@example.com", "Test User")
     assert user.id == user_duplicate.id
 
 def test_answer_scoring_service(db_session):
