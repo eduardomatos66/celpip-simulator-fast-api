@@ -2,12 +2,21 @@
 CELPIP Simulator API — FastAPI Application Entry Point.
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import router as api_v1_router
 from app.core.config import settings
+from app.core.redis import init_redis, close_redis
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await init_redis()
+    yield
+    # Shutdown
+    await close_redis()
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
@@ -17,6 +26,7 @@ def create_app() -> FastAPI:
         version="1.0.0",
         docs_url="/docs",
         redoc_url="/redoc",
+        lifespan=lifespan,
     )
 
     # CORS
@@ -38,6 +48,5 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     return app
-
 
 app = create_app()

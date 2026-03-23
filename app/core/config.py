@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     CLERK_JWKS_URL: str = ""
     CLERK_AUDIENCE: str = ""
 
+    # --- Redis ---
+    REDIS_ENABLED: bool = True
+    REDIS_URL: str = "redis://localhost:6379/0"
+
     # --- App ---
     APP_ENV: str = "development"
     APP_CORS_ORIGINS: list[str] = ["http://localhost:3000"]

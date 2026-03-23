@@ -103,6 +103,9 @@ class TestAreaBase(BaseModel):
 class TestAreaCreate(TestAreaBase):
     pass
 
+class TestAreaUpdate(TestAreaBase):
+    pass
+
 class TestAreaRead(TestAreaBase):
     test_area_id: int
     available_test_id: Optional[int] = None

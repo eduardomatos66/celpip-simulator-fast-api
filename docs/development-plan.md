@@ -156,8 +156,8 @@ Implement the service layer with all business rules.
 - Same CRUD pattern for `Section`, `Question`, `Option`
 
 #### `TestService` — `app/services/test_service.py`
-- `get_all_tests()` → list summary DTOs
-- `get_test_by_id(test_id)` → full test with all areas, parts, sections, questions
+- `get_all_tests()` → list summary DTOs **[Redis Cached]**
+- `get_test_by_id(test_id)` → full test with all areas, parts, sections, questions **[Redis Cached]**
 - `get_all_test_data()` → full payload list
 
 #### `AnswerSheetService` — `app/services/answer_sheet_service.py`
@@ -284,7 +284,22 @@ uvicorn app.main:app --reload
 
 ---
 
-## Changelog
+---
+
+## Phase 7 — Finalizing Missing Java Services
+
+To achieve total feature parity with the Java API, three key missing components were added:
+
+### Endpoints Added
+| Router | Method | Path | Description |
+|--------|--------|------|-------------|
+| `test-areas` | GET/POST/PUT/DELETE | `/api/v1/test-areas/...` | Direct CRUD for TestArea entities. |
+| `check-db` | GET | `/api/v1/check-db/...` | DB checks (orphans, valid questions, links). |
+
+### Internal Services
+- `Ollama3ApiService` (`app/services/internal/ollama3_api_service.py`): Performs async HTTP requests to a local Ollama instance (`http://127.0.0.1:11434`) to execute prompt evaluations and yield JSON scoring (`WritingEvaluation`).
+
+### Changelog
 
 | Version | Date | Changes |
 |---------|------|---------|
