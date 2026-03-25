@@ -311,3 +311,27 @@ To achieve total feature parity with the Java API, three key missing components 
 | 1.2.0 | 2026-03-22 | Phase 7 documentation update; added Check DB and Test Area CRUDs. |
 | 1.1.0 | 2026-03-22 | Phase 1 completed. Switched to pure Python `PyMySQL` driver. |
 | 1.0.0 | 2026-03-22 | Initial plan — 6 phases defined |
+
+---
+
+## Phase 8 — Global Error Handling & Resilience
+To prevent internal crashes, database constraints, or invalid payloads from leaking HTML or SQL queries back to the client, a firm global exception suite was set up.
+
+### Architecture
+All unhandled or manually raised faults fallback to JSON responses taking this exact shape:
+```json
+{
+    "error": {
+        "status": 404,
+        "type": "HTTP Error",
+        "message": "Resource not found",
+        "details": null
+    }
+}
+```
+
+### Handlers Added
+1. **`StarletteHTTPException`**: Re-shapes manual raises (e.g. 404s/403s) into the standard schema.
+2. **`RequestValidationError`**: Maps 422 Pydantic type-failures to standard schemas.
+3. **`IntegrityError`**: Captures SQLAlchemy DB conflict exceptions, protecting actual schema details while yielding a safe **409 Conflict**.
+4. **`Exception`**: The ultimate fallback. Muffles unhandled panics and outputs a safe **500 Server Error** without leaking stack traces.
