@@ -7,7 +7,7 @@ from app.services import quiz_service
 
 router = APIRouter()
 
-@router.get("/", response_model=List[PartRead])
+@router.get("", response_model=List[PartRead])
 def get_parts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Retrieve all parts with their sections, questions, and options."""
     parts = quiz_service.get_parts(db, skip=skip, limit=limit)

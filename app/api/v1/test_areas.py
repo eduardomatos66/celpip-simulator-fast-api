@@ -7,7 +7,7 @@ from app.services import test_area_service
 
 router = APIRouter()
 
-@router.get("/", response_model=List[TestAreaRead])
+@router.get("", response_model=List[TestAreaRead])
 def get_all_test_areas(db: Session = Depends(get_db)):
     """Retrieve all TestAreas."""
     return test_area_service.get_test_areas(db)
@@ -20,7 +20,7 @@ def get_test_area_by_id(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"TestArea {id} not found")
     return test_area
 
-@router.post("/", response_model=TestAreaRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TestAreaRead, status_code=status.HTTP_201_CREATED)
 def create_test_area(test_area_in: TestAreaCreate, db: Session = Depends(get_db)):
     """Create a new TestArea."""
     return test_area_service.create_test_area(db, test_area_in)

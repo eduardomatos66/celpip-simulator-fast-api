@@ -101,10 +101,10 @@ class TestAreaBase(BaseModel):
     part_id: Optional[int] = None
 
 class TestAreaCreate(TestAreaBase):
-    pass
+    __test__ = False
 
 class TestAreaUpdate(TestAreaBase):
-    pass
+    __test__ = False
 
 class TestAreaRead(TestAreaBase):
     test_area_id: int

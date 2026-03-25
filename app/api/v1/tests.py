@@ -9,7 +9,7 @@ from app.services import test_service
 
 router = APIRouter()
 
-@router.get("/", response_model=List[TestAvailableRead])
+@router.get("", response_model=List[TestAvailableRead])
 async def get_tests(db: Session = Depends(get_db), redis_client: redis.Redis = Depends(get_redis)):
     """List all available CELPIP tests (summary only)."""
     tests = await test_service.get_tests_summary_cached(db, redis_client)

@@ -15,7 +15,7 @@ def get_user_results(claims: CurrentUserClaims, db: Session = Depends(get_db)):
     if not user:
         return []
     
-    return test_result_service.get_results_for_user(db, user.user_id)
+    return test_result_service.get_results_for_user(db, user.id)
 
 @router.delete("/{result_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_test_result(result_id: int, claims: CurrentUserClaims, db: Session = Depends(get_db)):
@@ -25,7 +25,7 @@ def delete_test_result(result_id: int, claims: CurrentUserClaims, db: Session = 
         raise HTTPException(status_code=404, detail="Result not found")
         
     user = user_service.get_user_by_clerk_id(db, claims["sub"])
-    if not user or result.user_id != user.user_id:
+    if not user or result.user_id != user.id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this result")
         
     test_result_service.delete_result(db, result_id)
