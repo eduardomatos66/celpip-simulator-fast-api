@@ -22,3 +22,8 @@ async def get_test(test_id: int, db: Session = Depends(get_db), redis_client: re
     if not test_av:
         raise HTTPException(status_code=404, detail="Test not found")
     return test_av
+
+@router.get("/all", response_model=List[TestAvailableRead])
+def get_all_tests_full(db: Session = Depends(get_db)):
+    """Retrieve all tests with their full hierarchy."""
+    return test_service.get_tests_full(db)

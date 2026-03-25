@@ -1,7 +1,7 @@
 # CELPIP Simulator — FastAPI Development Plan
 
-**Version**: 1.2.0
-**Date**: 2026-03-22
+**Version**: 1.3.0
+**Date**: 2026-03-25
 **Status**: Completed/Ready
 
 ---
@@ -295,6 +295,10 @@ To achieve total feature parity with the Java API, three key missing components 
 |--------|--------|------|-------------|
 | `test-areas` | GET/POST/PUT/DELETE | `/api/v1/test-areas/...` | Direct CRUD for TestArea entities. |
 | `check-db` | GET | `/api/v1/check-db/...` | DB checks (orphans, valid questions, links). |
+| `parts` | POST/PUT/DELETE | `/api/v1/parts/...` | Administrative CRUD for Part entities. |
+| `sections` | GET/POST/PUT/DELETE | `/api/v1/sections/...` | Administrative CRUD for Section entities. |
+| `tests` | GET | `/api/v1/tests/all` | Fetch all available tests with eager-loaded hierarchy. |
+| `test-results` | POST | `/api/v1/test-results/testresult` | Fetch specific result by test_id and user name. |
 
 ### Internal Services
 - `Ollama3ApiService` (`app/services/internal/ollama3_api_service.py`): Performs async HTTP requests to a local Ollama instance (`http://127.0.0.1:11434`) to execute prompt evaluations and yield JSON scoring (`WritingEvaluation`).
@@ -303,5 +307,7 @@ To achieve total feature parity with the Java API, three key missing components 
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3.0 | 2026-03-25 | 100% API Parity attained; added complex administrative and testing endpoints. |
+| 1.2.0 | 2026-03-22 | Phase 7 documentation update; added Check DB and Test Area CRUDs. |
 | 1.1.0 | 2026-03-22 | Phase 1 completed. Switched to pure Python `PyMySQL` driver. |
 | 1.0.0 | 2026-03-22 | Initial plan — 6 phases defined |

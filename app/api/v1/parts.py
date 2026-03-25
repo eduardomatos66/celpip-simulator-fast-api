@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.deps import get_db
-from app.schemas.quiz import PartRead, SectionRead
+from app.schemas.quiz import PartRead, SectionRead, PartCreate, PartUpdate
 from app.services import quiz_service
 
 router = APIRouter()
@@ -26,3 +26,24 @@ def get_sections_for_part(part_id: int, db: Session = Depends(get_db)):
     """Get all sections belonging to a specific part."""
     sections = quiz_service.get_sections_by_part(db, part_id=part_id)
     return sections
+
+@router.post("", response_model=PartRead, status_code=status.HTTP_201_CREATED)
+def create_part(part_in: PartCreate, db: Session = Depends(get_db)):
+    """Create a new Part."""
+    return quiz_service.create_part(db, part_in)
+
+@router.put("/{part_id}", response_model=PartRead)
+def update_part(part_id: int, part_in: PartUpdate, db: Session = Depends(get_db)):
+    """Update an existing Part."""
+    db_obj = quiz_service.get_part_by_id(db, part_id)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail=f"Part {part_id} not found")
+    return quiz_service.update_part(db, db_obj, part_in)
+
+@router.delete("/{part_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_part(part_id: int, db: Session = Depends(get_db)):
+    """Delete a Part."""
+    success = quiz_service.delete_part(db, part_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Part {part_id} not found")
+    return None

@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.deps import get_db, CurrentUserClaims
-from app.schemas.answer import TestResultRead
+from app.schemas.answer import TestResultRead, TestResultRequest
 from app.services import test_result_service, user_service
 
 router = APIRouter()
@@ -29,3 +29,11 @@ def delete_test_result(result_id: int, claims: CurrentUserClaims, db: Session = 
         raise HTTPException(status_code=403, detail="Not authorized to delete this result")
         
     test_result_service.delete_result(db, result_id)
+
+@router.post("/testresult", response_model=TestResultRead)
+def get_test_result_with_data(request: TestResultRequest, db: Session = Depends(get_db)):
+    """Find a specific test result by test ID and user name."""
+    result = test_result_service.get_test_result_by_test_and_name(db, test_id=request.test_id, name=request.name)
+    if not result:
+        raise HTTPException(status_code=404, detail="TestResult not found.")
+    return result

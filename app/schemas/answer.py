@@ -60,3 +60,7 @@ class TestResultRead(TestResultBase):
     available_test_id: Optional[int] = None
     # We might nest the user or test data depending on the exact API response required
     model_config = ConfigDict(from_attributes=True)
+
+class TestResultRequest(BaseModel):
+    test_id: int
+    name: str

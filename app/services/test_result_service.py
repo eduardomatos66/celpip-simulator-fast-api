@@ -89,3 +89,10 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
     db.commit()
     db.refresh(result)
     return result
+
+def get_test_result_by_test_and_name(db: Session, test_id: int, name: str) -> Optional[TestResult]:
+    from app.models.user import User
+    return db.query(TestResult).join(User, TestResult.user_id == User.id).filter(
+        TestResult.available_test_id == test_id,
+        (User.full_name == name) | (User.email == name)
+    ).first()

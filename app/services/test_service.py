@@ -54,3 +54,10 @@ async def get_tests_summary_cached(db: Session, redis_client: redis.Redis) -> Li
         await redis_client.set(cache_key, json.dumps(tests_schema), ex=3600)
         
     return tests_schema
+
+def get_tests_full(db: Session) -> List[TestAvailable]:
+    """Retrieve all tests with their full hierarchy."""
+    return db.query(TestAvailable).options(
+        joinedload(TestAvailable.test_areas).joinedload(TestArea.part).joinedload(Part.introduction),
+        joinedload(TestAvailable.test_areas).joinedload(TestArea.part).joinedload(Part.sections).joinedload(Section.questions).joinedload(Question.options)
+    ).all()
