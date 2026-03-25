@@ -54,3 +54,13 @@ async def client() -> AsyncClient:
         
     app.dependency_overrides.clear()
 
+
+@pytest.fixture
+async def unauth_client() -> AsyncClient:
+    """Unauthenticated Async HTTP test client wired to the FastAPI ASGI app with mocked DB."""
+    app.dependency_overrides[get_db] = lambda: TestingSessionLocal()
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
+        
+    app.dependency_overrides.clear()
