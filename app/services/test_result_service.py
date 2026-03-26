@@ -1,13 +1,17 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.models.answer import TestResult, AnswerSheet
+from app.core.decorators import log_execution_time
 
+@log_execution_time
 def get_results_for_user(db: Session, user_id: int) -> List[TestResult]:
     return db.query(TestResult).filter(TestResult.user_id == user_id).all()
 
+@log_execution_time
 def get_result_by_id(db: Session, result_id: int) -> Optional[TestResult]:
     return db.query(TestResult).filter(TestResult.test_result_id == result_id).first()
 
+@log_execution_time
 def delete_result(db: Session, result_id: int) -> bool:
     res = get_result_by_id(db, result_id)
     if res:
@@ -32,6 +36,7 @@ def _compute_clb_listening_reading(score: int, max_score: float) -> int:
     if percent >= 0.3: return 4
     return 3
 
+@log_execution_time
 def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_id: int) -> Optional[TestResult]:
     """
     Internal logic to auto-score multiple choice questions (Listening/Reading).
@@ -90,6 +95,7 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
     db.refresh(result)
     return result
 
+@log_execution_time
 def get_test_result_by_test_and_name(db: Session, test_id: int, name: str) -> Optional[TestResult]:
     from app.models.user import User
     return db.query(TestResult).join(User, TestResult.user_id == User.id).filter(

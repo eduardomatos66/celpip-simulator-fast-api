@@ -4,11 +4,13 @@ import logging
 import httpx
 from typing import Optional
 from app.schemas.ollama import WritingEvaluation, CLBScore
+from app.core.decorators import log_execution_time
 
 logger = logging.getLogger(__name__)
 
 OLLAMA_URL = "http://127.0.0.1:11434"
 
+@log_execution_time
 async def get_ollama3_response(text: str) -> Optional[WritingEvaluation]:
     """
     Calls the local Ollama instance and returns a parsed WritingEvaluation.
@@ -33,6 +35,7 @@ async def get_ollama3_response(text: str) -> Optional[WritingEvaluation]:
         logger.error(f"Error calling Ollama3 API: {e}")
         return None
 
+@log_execution_time
 def parse_ollama3_response(response_text: str) -> Optional[WritingEvaluation]:
     """
     Extracts the structured JSON block from the LLM's text output using Regex.

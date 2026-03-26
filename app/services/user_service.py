@@ -3,13 +3,17 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
+from app.core.decorators import log_execution_time
 
+@log_execution_time
 def get_user_by_clerk_id(db: Session, clerk_id: str) -> Optional[User]:
     return db.query(User).filter(User.clerk_id == clerk_id).first()
 
+@log_execution_time
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
 
+@log_execution_time
 def create_user(db: Session, user_in: UserCreate) -> User:
     user = User(
         full_name=user_in.full_name,
@@ -21,6 +25,7 @@ def create_user(db: Session, user_in: UserCreate) -> User:
     db.refresh(user)
     return user
 
+@log_execution_time
 def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -> User:
     """Helper to ensure the user exists in our DB during login/token usage."""
     user = get_user_by_clerk_id(db, clerk_id)
@@ -41,10 +46,12 @@ def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -
             
     return user
 
+@log_execution_time
 def list_pending_users(db: Session):
     """List users waiting for authorization."""
     return db.query(User).filter(User.is_authorized == False).all()
 
+@log_execution_time
 def authorize_user(db: Session, user_id: int, admin_id: int) -> Optional[User]:
     """Authorize a user by an admin."""
     user = db.query(User).filter(User.id == user_id).first()
@@ -56,6 +63,7 @@ def authorize_user(db: Session, user_id: int, admin_id: int) -> Optional[User]:
         db.refresh(user)
     return user
 
+@log_execution_time
 def update_user(db: Session, user_id: int, user_in: UserUpdate) -> Optional[User]:
     """Update user fields."""
     user = db.query(User).filter(User.id == user_id).first()

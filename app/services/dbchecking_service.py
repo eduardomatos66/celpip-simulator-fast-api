@@ -4,9 +4,11 @@ import httpx
 from typing import List
 from sqlalchemy.orm import Session
 from app.models.quiz import Option, Question, Section, Part, TestArea, TestAvailable
+from app.core.decorators import log_execution_time
 
 logger = logging.getLogger(__name__)
 
+@log_execution_time
 async def check_url_validity(url: str) -> bool:
     """Async check if a URL is valid/available."""
     if not url or not url.startswith("http"):
@@ -18,6 +20,7 @@ async def check_url_validity(url: str) -> bool:
     except Exception:
         return False
 
+@log_execution_time
 async def check_links(db: Session) -> dict:
     """Finds dead links in options, questions, and sections."""
     issues = []
@@ -52,6 +55,7 @@ async def check_links(db: Session) -> dict:
     return {"issues_found": len(issues), "details": issues}
 
 
+@log_execution_time
 def check_non_valid_questions(db: Session) -> dict:
     """Finds questions that don't have any option marked as correct."""
     invalid_qs = []
@@ -65,6 +69,7 @@ def check_non_valid_questions(db: Session) -> dict:
     return {"invalid_questions_count": len(invalid_qs), "question_ids": invalid_qs}
 
 
+@log_execution_time
 def check_orphan_entities(db: Session) -> dict:
     """Finds and deletes orphaned entities (no parents)."""
     deleted_counts = {}
