@@ -1,3 +1,4 @@
+import logging
 import redis.asyncio as redis
 from typing import AsyncGenerator
 from app.core.config import settings
@@ -8,8 +9,13 @@ redis_client: redis.Redis = None
 async def init_redis():
     global redis_client
     if settings.REDIS_ENABLED:
-        redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
-        await redis_client.ping()
+        try:
+            redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            await redis_client.ping()
+            logging.info("Successfully connected to Redis.")
+        except Exception as e:
+            logging.warning(f"Could not connect to Redis: {e}. Caching will be disabled.")
+            redis_client = None
 
 async def close_redis():
     global redis_client
