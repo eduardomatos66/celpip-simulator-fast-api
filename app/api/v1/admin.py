@@ -24,10 +24,25 @@ def authorize_user(
     admin: AdminUser
 ):
     """
-    Authorize a specific user.
+    Approve a specific user request.
     Requires admin privileges.
     """
     user = user_service.authorize_user(db, user_id=user_id, admin_id=admin.id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@router.post("/users/{user_id}/reject", response_model=UserRead)
+def reject_user(
+    user_id: int,
+    db: DBSession,
+    admin: AdminUser
+):
+    """
+    Reject a specific user request.
+    Requires admin privileges.
+    """
+    user = user_service.reject_user(db, user_id=user_id, admin_id=admin.id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -40,7 +55,7 @@ def update_user_status(
     admin: AdminUser
 ):
     """
-    Update a user's status (e.g. make them an admin or revoke authorization).
+    Update a user's status or role.
     Requires admin privileges.
     """
     user = user_service.update_user(db, user_id=user_id, user_in=user_in)

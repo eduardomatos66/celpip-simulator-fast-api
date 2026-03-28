@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 from typing import Optional
+from app.models.user import UserStatus
 
 class UserBase(BaseModel):
     full_name: str
@@ -12,7 +13,7 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     clerk_id: str
-    is_authorized: bool
+    status: UserStatus
     is_admin: bool
     authorized_at: Optional[datetime] = None
     authorized_by_admin_id: Optional[int] = None
@@ -23,5 +24,5 @@ class UserRead(UserBase):
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
-    is_authorized: Optional[bool] = None
+    status: Optional[UserStatus] = None
     is_admin: Optional[bool] = None

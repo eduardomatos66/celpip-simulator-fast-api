@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # --- Clerk ---
     CLERK_JWKS_URL: str = ""
     CLERK_AUDIENCE: str = ""
+    CLERK_ISSUER_URL: str = ""
+    CLERK_WEBHOOK_SECRET: str = ""
+    CLERK_SECRET_KEY: str = ""
 
     # --- Redis ---
     REDIS_ENABLED: bool = True

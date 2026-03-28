@@ -29,16 +29,26 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+from app.core.logger import logger
+
 async def get_current_user_claims(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer_scheme)],
 ) -> dict:
     """
     Verify the Bearer token and return the decoded Clerk JWT claims.
-
-    Raises:
-        HTTPException 401: If the token is missing or invalid.
     """
-    return await verify_clerk_token(credentials.credentials)
+    try:
+        claims = await verify_clerk_token(credentials.credentials)
+        return claims
+    except HTTPException:
+        # Re-raise HTTPExceptions from verify_clerk_token (already logged there)
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error during token verification: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials.",
+        )
 
 
 # Convenience aliases used in route signatures
@@ -62,16 +72,23 @@ async def get_current_user(
     return user
 
 
+from app.models.user import User, UserStatus
+
+
 async def get_authorized_user(
     user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     """
     Ensure the user is authorized by an admin.
     """
-    if not user.is_authorized:
+    if user.status != UserStatus.APPROVED:
+        detail = "User not authorized by admin. Please contact support."
+        if user.status == UserStatus.REJECTED:
+            detail = "Your account request has been denied. Please contact support."
+            
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User not authorized by admin. Please contact support.",
+            detail=detail,
         )
     return user
 

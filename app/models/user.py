@@ -2,13 +2,20 @@
 User domain models.
 """
 
+import enum
 from typing import Optional
 from datetime import datetime
 
-from sqlalchemy import Integer, String, DateTime, func, Boolean, ForeignKey
+from sqlalchemy import Integer, String, DateTime, func, Boolean, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+
+class UserStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
 
 
 class User(Base):
@@ -22,7 +29,9 @@ class User(Base):
     clerk_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
 
     # Authorisation logic
-    is_authorized: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    status: Mapped[UserStatus] = mapped_column(
+        Enum(UserStatus), default=UserStatus.PENDING, nullable=False
+    )
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
     authorized_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
