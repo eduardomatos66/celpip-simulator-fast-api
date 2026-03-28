@@ -31,7 +31,7 @@ async def test_admin_authorization_flow(client: AsyncClient, db_session: Session
     user2_id = data["id"]
 
     # 3. New user tries to access protected endpoint
-    response = await client.get("/api/v1/tests")
+    response = await client.get("/api/v1/test-results/user")
     assert response.status_code == 403
     assert "not authorized" in response.json()["error"]["message"].lower()
 
@@ -53,7 +53,7 @@ async def test_admin_authorization_flow(client: AsyncClient, db_session: Session
     # 5. User 2 tries to access protected endpoint again
     app.dependency_overrides[get_current_user_claims] = lambda: {"sub": "user_2", "email": "user2@example.com", "name": "User Two"}
     
-    response = await client.get("/api/v1/tests")
+    response = await client.get("/api/v1/test-results/user")
     # It might be 500 or 404 if no tests exist, but NOT 403
     assert response.status_code != 403
     

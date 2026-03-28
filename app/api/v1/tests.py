@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import redis.asyncio as redis
-from app.core.deps import get_db, AuthorizedUser
+from app.core.deps import get_db
 from app.core.redis import get_redis
 from app.schemas.quiz import TestAvailableRead
 from app.services import test_service
@@ -11,7 +11,6 @@ router = APIRouter()
 
 @router.get("", response_model=List[TestAvailableRead])
 async def get_tests(
-    user: AuthorizedUser,
     db: Session = Depends(get_db), 
     redis_client: redis.Redis = Depends(get_redis)
 ):
@@ -22,7 +21,6 @@ async def get_tests(
 @router.get("/{test_id}", response_model=TestAvailableRead)
 async def get_test(
     test_id: int, 
-    user: AuthorizedUser,
     db: Session = Depends(get_db), 
     redis_client: redis.Redis = Depends(get_redis)
 ):
@@ -34,7 +32,6 @@ async def get_test(
 
 @router.get("/all", response_model=List[TestAvailableRead])
 def get_all_tests_full(
-    user: AuthorizedUser,
     db: Session = Depends(get_db)
 ):
     """Retrieve all tests with their full hierarchy."""
