@@ -14,6 +14,7 @@ from app.api.v1.router import router as api_v1_router
 from app.api.v1.webhooks import router as webhooks_router
 from app.core.config import settings
 from app.core.redis import init_redis, close_redis
+from app.core.logger import logger
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -99,6 +100,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(Exception)
     async def generic_exception_handler(request: Request, exc: Exception):
+        logger.error(f"Unhandled exception: {exc}", exc_info=True)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
@@ -106,7 +108,7 @@ def create_app() -> FastAPI:
                     "status": 500,
                     "type": "Internal Server Error",
                     "message": "An unexpected error occurred.",
-                    "details": None
+                    "details": str(exc) if settings.APP_ENV == "development" else None
                 }
             }
         )
