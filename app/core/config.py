@@ -2,6 +2,7 @@
 Application settings loaded from environment variables.
 """
 
+import json
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Any
@@ -37,7 +38,10 @@ class Settings(BaseSettings):
 
     # --- App ---
     APP_ENV: str = "development"
-    APP_CORS_ORIGINS: list[str] = [
+
+    # We use Any here to prevent pydantic-settings from trying to parse JSON automatically.
+    # Our field_validator handles both comma-separated strings and JSON arrays.
+    APP_CORS_ORIGINS: Any = [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -45,12 +49,18 @@ class Settings(BaseSettings):
 
     @field_validator("APP_CORS_ORIGINS", mode="before")
     @classmethod
-    def assemble_cors_origins(cls, v: Any) -> list[str] | str:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
+    def assemble_cors_origins(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            v = v.strip()
+            # If it looks like a JSON array, try loading it
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            # Otherwise, split by comma
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
 
 
 settings = Settings()
