@@ -7,6 +7,7 @@ from app.core.decorators import log_execution_time
 from app.core.config import settings
 from app.core import email as email_service
 import httpx
+from sqlalchemy.exc import IntegrityError
 from app.core.logger import logger
 
 @log_execution_time
@@ -31,9 +32,34 @@ def create_user(db: Session, user_in: UserCreate) -> User:
 
 @log_execution_time
 def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -> User:
-    """Helper to ensure the user exists in our DB during login/token usage."""
+    """
+    Helper to ensure the user exists in our DB during login/token usage.
+    Handles potential race conditions between webhooks and frontend authentication calls.
+    """
+    # 1. Try to fetch by clerk_id first
     user = get_user_by_clerk_id(db, clerk_id)
-    if not user:
+    if user:
+        # Sync name if it changed or was the placeholder
+        if full_name and (user.full_name == "New User" or (full_name != "New User" and user.full_name != full_name)):
+            logger.info(f"Updating name for user {clerk_id}: {user.full_name} -> {full_name}")
+            user.full_name = full_name
+            db.commit()
+            db.refresh(user)
+        return user
+        
+    # 2. Try to fetch by email to avoid unique constraint violation if clerk_id is missing or different
+    user = get_user_by_email(db, email)
+    if user:
+        # User exists but clerk_id might be missing or different (migration cases)
+        if not user.clerk_id:
+            logger.info(f"Linking existing user {email} to clerk_id {clerk_id}")
+            user.clerk_id = clerk_id
+            db.commit()
+            db.refresh(user)
+        return user
+
+    # 3. If not found, create new user
+    try:
         # Check if this is the first user ever
         first_user = db.query(User).first() is None
         
@@ -47,12 +73,26 @@ def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -
             user.authorized_at = datetime.now()
             db.commit()
             db.refresh(user)
-            # No email for the first system admin, or send a special one if needed
         else:
             # Send notification that review is pending
             email_service.send_pending_email(user.email, user.full_name)
+                
+        return user
+    except IntegrityError:
+        # This handles a race condition where another request created the user
+        # between our initial lookup and the commit.
+        db.rollback()
+        logger.warning(f"IntegrityError during get_or_create_user for {clerk_id}. Retrying lookup...")
+        user = get_user_by_clerk_id(db, clerk_id)
+        if user:
+            return user
+        
+        # Fallback if somehow it was a different integrity error (like email conflict)
+        user = get_user_by_email(db, email)
+        if user:
+            return user
             
-    return user
+        raise
 
 @log_execution_time
 def list_pending_users(db: Session):

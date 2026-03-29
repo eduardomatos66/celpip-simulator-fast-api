@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     CLERK_ISSUER_URL: str = ""
     CLERK_WEBHOOK_SECRET: str = ""
     CLERK_SECRET_KEY: str = ""
+    CLERK_JWT_KEY: str = ""
 
     # --- Redis ---
     REDIS_ENABLED: bool = True
@@ -34,7 +35,11 @@ class Settings(BaseSettings):
 
     # --- App ---
     APP_ENV: str = "development"
-    APP_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    APP_CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
 
 settings = Settings()

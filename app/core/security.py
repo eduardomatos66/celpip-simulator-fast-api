@@ -62,6 +62,25 @@ async def verify_clerk_token(token: str) -> Dict[str, Any]:
 
 
 async def _decode_and_verify(token: str) -> Dict[str, Any]:
+    # If a local public key (PEM) is provided, use it for faster/offline verification
+    if settings.CLERK_JWT_KEY:
+        try:
+            return jwt.decode(
+                token,
+                settings.CLERK_JWT_KEY,
+                algorithms=["RS256"],
+                audience=settings.CLERK_AUDIENCE or None,
+                issuer=settings.CLERK_ISSUER_URL or None,
+                options={
+                    "verify_aud": bool(settings.CLERK_AUDIENCE),
+                    "verify_iss": bool(settings.CLERK_ISSUER_URL),
+                },
+            )
+        except JWTError as e:
+            logger.error(f"Local JWT verification failed: {e}")
+            raise
+
+    # Fallback to JWKS verification
     jwks = await _get_jwks()
     return jwt.decode(
         token,
@@ -77,9 +96,10 @@ async def _decode_and_verify(token: str) -> Dict[str, Any]:
 
 
 def _handle_auth_error(exc: Exception):
-    logger.warning(f"Authentication failed: {exc}")
+    error_msg = str(exc)
+    logger.warning(f"Authentication failed: {error_msg}")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired authentication token.",
+        detail=f"Authentication failed: {error_msg}",
         headers={"WWW-Authenticate": "Bearer"},
     )

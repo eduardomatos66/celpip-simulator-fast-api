@@ -65,8 +65,26 @@ async def get_current_user(
     Creates the user if they don't exist yet (sync on first login).
     """
     clerk_id = claims.get("sub")
-    email = claims.get("email", "")
-    full_name = claims.get("name", "")
+    
+    # Try multiple common Clerk email claims to match what the webhook sends
+    email = (
+        claims.get("email") or 
+        claims.get("primary_email_address") or 
+        claims.get("email_address")
+    )
+    
+    if not email:
+        # Fallback to satisfy DB/Schema constraints if Clerk is misconfigured
+        # Using @clerk.com because .local is a reserved TLD and fails Pydantic validation
+        email = f"user_{clerk_id}@clerk.com"
+        logger.warning(f"No email found in JWT claims for {clerk_id}. Using fallback: {email}. Claims: {claims.keys()}")
+
+    # Extract name with multiple potential keys
+    full_name = (
+        claims.get("name") or 
+        claims.get("full_name") or 
+        claims.get("given_name", "") + " " + claims.get("family_name", "")
+    ).strip() or "New User"
     
     user = user_service.get_or_create_user(db, clerk_id, email, full_name)
     return user

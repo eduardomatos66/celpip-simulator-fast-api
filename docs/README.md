@@ -58,10 +58,15 @@ TIDB_PORT=4000
 TIDB_DATABASE=celpip_db
 TIDB_SSL_CA=path_to_pem_or_empty
 
-# Clerk Authentication (JWKS config)
-CLERK_JWKS_URL=your_clerk_jwks_url
-CLERK_AUDIENCE=your_clerk_audience
-APP_CORS_ORIGINS=["http://localhost:3000"]
+# Clerk Authentication
+CLERK_JWKS_URL=https://[your-clerk-domain]/.well-known/jwks.json
+CLERK_AUDIENCE=
+CLERK_ISSUER_URL=https://[your-clerk-domain]
+CLERK_SECRET_KEY=sk_test_...
+CLERK_WEBHOOK_SECRET=whsec_...
+
+# App Configuration
+APP_CORS_ORIGINS=["http://localhost:3000", "http://localhost:5173"]
 ```
 
 ### 3. Running the Server Locally
@@ -99,6 +104,7 @@ The project uses **Clerk** for all user authentication. It relies on signed JWT 
    - If the user doesn't exist in the local database (TiDB/MySQL), a new record is created on-the-fly.
    - If the user exists, their local record is retrieved.
 3. **Requirement**: Ensure `CLERK_JWKS_URL` and `CLERK_AUDIENCE` are correctly set in your `.env` file.
+- **Webhooks**: See the [Webhooks Setup Guide](file:///e:/Workspace/celpip-simulator-fast-api/docs/webhooks_setup.md) for automated user provisioning.
 
 ### Protected vs Public Routes
 
@@ -121,3 +127,19 @@ pytest tests/ -v
 
 ### Global Error Handling in Tests
 If you intend to test edge-case error injections (e.g., verifying a DB constraint 409 Conflict), the project uses a centralized error schema (`{"error": { "status": ..., "message": ... }}`). These scenarios are exclusively tested under `tests/integration/test_api_errors.py` to ensure raw HTML/500 panics never leak to the frontend.
+
+---
+
+## troubleshooting
+
+### 1. CORS Policy Errors
+If your frontend (e.g., Vite/React) cannot reach the backend, Ensure your origin is listed in `APP_CORS_ORIGINS` inside the `.env` file.
+- **Example**: `APP_CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]`
+
+### 2. 503 Service Unavailable
+If the backend returns a 503 error on protected routes, it usually means the **Clerk JWKS URL** is incorrect or inaccessible.
+- Check that `CLERK_JWKS_URL` in `.env` points to a valid JSON endpoint.
+- Ensure your internet connection can reach the Clerk API.
+
+### 3. Database Connection Issues
+If the server fails to start, verify your `TIDB_SSL_CA` path. If you are not using SSL (local dev), you can leave it empty, but the backend expects a valid path if a value is provided.

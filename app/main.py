@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.exc import IntegrityError
 
 from app.api.v1.router import router as api_v1_router
+from app.api.v1.webhooks import router as webhooks_router
 from app.core.config import settings
 from app.core.redis import init_redis, close_redis
 
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
 
     # Routers
     app.include_router(api_v1_router, prefix="/api/v1")
+    app.include_router(webhooks_router, prefix="/webhooks")
 
     # Health check
     @app.get("/health", tags=["Health"])
