@@ -25,21 +25,26 @@ def _build_database_url() -> str:
 
 def _build_connect_args() -> dict:
     """Build SSL connect args for TiDB Cloud if a CA cert path is provided."""
-    # If the CA file exists, use it to build a specific context
+    # Option 1: File based SSL (most explicit)
     if settings.TIDB_SSL_CA and os.path.exists(settings.TIDB_SSL_CA):
-        ssl_ctx = ssl.create_default_context(cafile=settings.TIDB_SSL_CA)
-        return {"ssl": ssl_ctx}
+        logger.info(f"Using file-based SSL configuration with: {settings.TIDB_SSL_CA}")
+        # PyMySQL supports a dictionary for 'ssl' that includes the CA path
+        # sqlalchemy connect_args passes this directly to pymysql.connect
+        return {"ssl": {"ca": os.path.abspath(settings.TIDB_SSL_CA)}}
 
-    # If the CA file is missing (common on Vercel) or we're in production,
-    # we fall back to the system's default SSL context.
-    # TiDB Cloud requires SSL, and this will use the system's root CAs.
+    # Option 2: Fallback for environments without the file (e.g. Vercel dashboard env missing the file)
+    # We MUST force SSL if not in development or if a CA was explicitly requested by name
     if settings.APP_ENV != "development" or settings.TIDB_SSL_CA:
         if settings.TIDB_SSL_CA:
-            logger.warning(f"SSL CA file NOT FOUND at: {settings.TIDB_SSL_CA}. Falling back to default SSL context.")
+            logger.warning(f"SSL CA file NOT FOUND at: {settings.TIDB_SSL_CA}. Using default SSL context.")
+        else:
+            logger.info("Enforcing SSL for production environment using default context.")
 
-        # PyMySQL expects an SSLContext object in the 'ssl' key to enable validation
+        # Using a proper SSLContext object is the second best way to ensure secure transport
         return {"ssl": ssl.create_default_context()}
 
+    # Option 3: Development without SSL (only if explicitly local/dev)
+    logger.debug("Connecting to database without SSL (Development mode).")
     return {}
 
 
