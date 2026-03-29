@@ -99,5 +99,6 @@ $RECYCLE.BIN/
 
 # Secrets
 *.pem
+!certs/*.pem
 *.key
 secrets/

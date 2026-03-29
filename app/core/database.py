@@ -25,20 +25,20 @@ def _build_database_url() -> str:
 
 def _build_connect_args() -> dict:
     """Build SSL connect args for TiDB Cloud if a CA cert path is provided."""
-    if settings.TIDB_SSL_CA:
-        # Check if the file actually exists to prevent 500 crashes in Vercel
-        if os.path.exists(settings.TIDB_SSL_CA):
-            ssl_ctx = ssl.create_default_context(cafile=settings.TIDB_SSL_CA)
-            return {"ssl": ssl_ctx}
-        else:
-            logger.warning(f"SSL CA file NOT FOUND at: {settings.TIDB_SSL_CA}. Using default SSL context.")
-            # Fallback for TiDB Cloud — usually works with system defaults if using modern Python/Vercel
-            return {"ssl": {"verify_identity": True}}
+    # If the CA file exists, use it to build a specific context
+    if settings.TIDB_SSL_CA and os.path.exists(settings.TIDB_SSL_CA):
+        ssl_ctx = ssl.create_default_context(cafile=settings.TIDB_SSL_CA)
+        return {"ssl": ssl_ctx}
 
-    # If not on production or no SSL requested, return empty
-    if settings.APP_ENV != "development":
-        # Force SSL for production TiDB Cloud even without a specific CA file
-        return {"ssl": {"verify_identity": True}}
+    # If the CA file is missing (common on Vercel) or we're in production,
+    # we fall back to the system's default SSL context.
+    # TiDB Cloud requires SSL, and this will use the system's root CAs.
+    if settings.APP_ENV != "development" or settings.TIDB_SSL_CA:
+        if settings.TIDB_SSL_CA:
+            logger.warning(f"SSL CA file NOT FOUND at: {settings.TIDB_SSL_CA}. Falling back to default SSL context.")
+
+        # PyMySQL expects an SSLContext object in the 'ssl' key to enable validation
+        return {"ssl": ssl.create_default_context()}
 
     return {}
 
