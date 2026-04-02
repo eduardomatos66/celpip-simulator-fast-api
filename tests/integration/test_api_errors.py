@@ -42,6 +42,14 @@ async def test_409_integrity_error(client: AsyncClient):
 async def test_500_internal_error():
     """Test a raw unhandled exception is muffled safely."""
     from httpx import ASGITransport
+    from app.core.deps import get_db, get_current_user_claims
+
+    # We must bridge to the TestingSessionLocal to isolate this test's DB
+    # and provide a mock user so it passes the AuthorizedUser check.
+    from tests.conftest import TestingSessionLocal
+    app.dependency_overrides[get_db] = lambda: TestingSessionLocal()
+    app.dependency_overrides[get_current_user_claims] = lambda: {"sub": "test_clerk", "email": "test@example.com"}
+
     transport = ASGITransport(app=app, raise_app_exceptions=False)
     async with AsyncClient(transport=transport, base_url="http://test") as safe_client:
         with patch("app.services.test_area_service.get_test_areas") as mock_get:
@@ -54,3 +62,5 @@ async def test_500_internal_error():
         assert data["error"]["status"] == 500
         assert data["error"]["type"] == "Internal Server Error"
         assert "Crash!" not in data["error"]["message"]  # Stack trace protected
+
+    app.dependency_overrides.clear()
