@@ -16,7 +16,7 @@ async def test_init_redis_enabled():
             await redis.init_redis()
             assert redis.redis_client is not None
             mock_from_url.assert_called_once()
-            
+
             # test cleanup
             await redis.close_redis()
             # It should have called close on the mocked instance

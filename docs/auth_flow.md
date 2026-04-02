@@ -13,7 +13,7 @@ sequenceDiagram
     Note over User, Clerk: Phase 1: Sign-up
     User->>Clerk: Sign up / Sign in
     Clerk-->>User: ID Token (JWT)
-    
+
     Note over Clerk, API: Phase 1.5: Webhook Provisioning
     Clerk->>API: POST /api/v1/webhooks/clerk (user.created)
     API->>API: verify_webhook_signature()

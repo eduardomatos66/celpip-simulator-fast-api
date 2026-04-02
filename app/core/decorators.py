@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def log_execution_time(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to log the execution time of a function."""
-    
+
     @functools.wraps(func)
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = time.perf_counter()

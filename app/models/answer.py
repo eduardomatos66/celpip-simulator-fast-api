@@ -16,10 +16,10 @@ class AnswerSheet(Base):
 
     answer_sheet_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     test_id: Mapped[str] = mapped_column(String(255))
-    
+
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship("User")
-    
+
     date: Mapped[datetime] = mapped_column(DateTime, default=func.now())
 
     option_answers: Mapped[List["OptionAnswer"]] = relationship(
@@ -32,7 +32,7 @@ class OptionAnswer(Base):
 
     option_answer_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     answer_sheet_id: Mapped[Optional[int]] = mapped_column(ForeignKey("answer_sheet.answer_sheet_id"))
-    
+
     question_id: Mapped[str] = mapped_column(String(255))
     user_answer: Mapped[Optional[str]] = mapped_column(Text)      # length=5000 in Java
     correct_answer: Mapped[Optional[str]] = mapped_column(Text)   # length=8000 in Java
@@ -46,23 +46,23 @@ class TestResult(Base):
     __test__ = False
 
     test_result_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    
+
     listening_corrects: Mapped[Optional[int]] = mapped_column(Integer)
     listening_max: Mapped[Optional[float]] = mapped_column(Float)
-    
+
     reading_corrects: Mapped[Optional[int]] = mapped_column(Integer)
     reading_max: Mapped[Optional[float]] = mapped_column(Float)
-    
+
     writing_min: Mapped[Optional[float]] = mapped_column(Float)
     writing_max: Mapped[Optional[float]] = mapped_column(Float)
-    
+
     speaking_min: Mapped[Optional[float]] = mapped_column(Float)
     speaking_max: Mapped[Optional[float]] = mapped_column(Float)
-    
+
     clb_min: Mapped[Optional[float]] = mapped_column(Float)
     clb_max: Mapped[Optional[float]] = mapped_column(Float)
     clb_average: Mapped[Optional[float]] = mapped_column(Float)
-    
+
     result_date: Mapped[Optional[datetime]] = mapped_column("result_date", DateTime)
 
     available_test_id: Mapped[Optional[int]] = mapped_column(ForeignKey("test_available.available_test_id"))
@@ -70,8 +70,8 @@ class TestResult(Base):
 
     user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
     user: Mapped[Optional["User"]] = relationship("User")
-    
+
     answer_sheet_id: Mapped[Optional[int]] = mapped_column(ForeignKey("answer_sheet.answer_sheet_id"))
-    
+
     # We explicitly import string references for models to avoid circular imports below
     # Note: "User" and "TestAvailable" need to be mapped appropriately by SQLAlchemy

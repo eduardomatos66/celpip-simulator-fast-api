@@ -45,15 +45,15 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
     sheet = db.query(AnswerSheet).filter(AnswerSheet.answer_sheet_id == answer_sheet_id).first()
     if not sheet:
         return None
-        
+
     # We don't have the exact complex matching currently, so we simulate exact string matches
     # for Listening/Reading, matching `user_answer` vs `correct_answer`.
-    # Assuming half queries go to LISTENING, half to READING based on Part ID, 
+    # Assuming half queries go to LISTENING, half to READING based on Part ID,
     # but currently we just evaluate overall correctness for simplicity in the skeleton.
 
     correct_count = 0
     total_mcq = 0
-    
+
     for opts in sheet.option_answers:
         if opts.correct_answer:  # It is an MCQ
             total_mcq += 1
@@ -63,14 +63,14 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
     # Simple half/half split simulation for the skeleton structure
     half_mcq = total_mcq / 2.0 if total_mcq > 0 else 1.0
     half_correct = correct_count / 2.0
-    
+
     clb_L = _compute_clb_listening_reading(int(half_correct), half_mcq)
     clb_R = _compute_clb_listening_reading(int(half_correct), half_mcq)
 
     # Defaults for Writing/Speaking if empty
     w_min, w_max = 6.0, 8.0
     s_min, s_max = 6.0, 8.0
-    
+
     clb_avg = (clb_L + clb_R + ((w_min+w_max)/2) + ((s_min+s_max)/2)) / 4.0
 
     result = TestResult(
@@ -89,7 +89,7 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
         clb_max=max([clb_L, clb_R, w_max, s_max]),
         clb_average=clb_avg
     )
-    
+
     db.add(result)
     db.commit()
     db.refresh(result)

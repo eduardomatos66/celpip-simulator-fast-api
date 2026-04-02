@@ -65,14 +65,14 @@ async def get_current_user(
     Creates the user if they don't exist yet (sync on first login).
     """
     clerk_id = claims.get("sub")
-    
+
     # Try multiple common Clerk email claims to match what the webhook sends
     email = (
-        claims.get("email") or 
-        claims.get("primary_email_address") or 
+        claims.get("email") or
+        claims.get("primary_email_address") or
         claims.get("email_address")
     )
-    
+
     if not email:
         # Fallback to satisfy DB/Schema constraints if Clerk is misconfigured
         # Using @clerk.com because .local is a reserved TLD and fails Pydantic validation
@@ -81,11 +81,11 @@ async def get_current_user(
 
     # Extract name with multiple potential keys
     full_name = (
-        claims.get("name") or 
-        claims.get("full_name") or 
+        claims.get("name") or
+        claims.get("full_name") or
         claims.get("given_name", "") + " " + claims.get("family_name", "")
     ).strip() or "New User"
-    
+
     user = user_service.get_or_create_user(db, clerk_id, email, full_name)
     return user
 
@@ -103,7 +103,7 @@ async def get_authorized_user(
         detail = "User not authorized by admin. Please contact support."
         if user.status == UserStatus.REJECTED:
             detail = "Your account request has been denied. Please contact support."
-            
+
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=detail,
@@ -128,4 +128,3 @@ async def get_admin_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 AuthorizedUser = Annotated[User, Depends(get_authorized_user)]
 AdminUser = Annotated[User, Depends(get_admin_user)]
-

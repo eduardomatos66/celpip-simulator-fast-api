@@ -46,7 +46,7 @@ def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -
             db.commit()
             db.refresh(user)
         return user
-        
+
     # 2. Try to fetch by email to avoid unique constraint violation if clerk_id is missing or different
     user = get_user_by_email(db, email)
     if user:
@@ -62,10 +62,10 @@ def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -
     try:
         # Check if this is the first user ever
         first_user = db.query(User).first() is None
-        
+
         user_in = UserCreate(full_name=full_name, email=email, clerk_id=clerk_id)
         user = create_user(db, user_in)
-        
+
         if first_user:
             # Bootstrap first user as authorized admin
             user.is_admin = True
@@ -76,7 +76,7 @@ def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -
         else:
             # Send notification that review is pending
             email_service.send_pending_email(user.email, user.full_name)
-                
+
         return user
     except IntegrityError:
         # This handles a race condition where another request created the user
@@ -86,12 +86,12 @@ def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -
         user = get_user_by_clerk_id(db, clerk_id)
         if user:
             return user
-        
+
         # Fallback if somehow it was a different integrity error (like email conflict)
         user = get_user_by_email(db, email)
         if user:
             return user
-            
+
         raise
 
 @log_execution_time
@@ -109,13 +109,13 @@ def authorize_user(db: Session, user_id: int, admin_id: int) -> Optional[User]:
         user.authorized_by_admin_id = admin_id
         db.commit()
         db.refresh(user)
-        
+
         # Notify user
         email_service.send_approval_email(user.email, user.full_name)
-        
+
         # Sync with Clerk
         _sync_user_to_clerk(user)
-        
+
     return user
 
 @log_execution_time
@@ -128,13 +128,13 @@ def reject_user(db: Session, user_id: int, admin_id: int) -> Optional[User]:
         user.authorized_by_admin_id = admin_id
         db.commit()
         db.refresh(user)
-        
+
         # Notify user
         email_service.send_rejection_email(user.email, user.full_name)
-        
+
         # Sync with Clerk
         _sync_user_to_clerk(user)
-        
+
     return user
 
 def _sync_user_to_clerk(user: User):

@@ -21,7 +21,7 @@ JWKS_TTL = 3600  # 1 hour
 async def _get_jwks(force_refresh: bool = False) -> Dict[str, Any]:
     """Fetch and cache Clerk's JSON Web Key Set with TTL."""
     global _jwks_cache, _jwks_last_fetched
-    
+
     current_time = time.time()
     if force_refresh or _jwks_cache is None or (current_time - _jwks_last_fetched > JWKS_TTL):
         logger.info("Fetching fresh JWKS from Clerk...")

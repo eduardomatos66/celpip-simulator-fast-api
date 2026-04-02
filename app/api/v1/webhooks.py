@@ -16,26 +16,26 @@ def extract_user_data(data: dict):
     Extract clerk_id, email, and full_name from Clerk user data.
     """
     clerk_id = data.get("id")
-    
+
     # Extract email from the list of email addresses
     email_addresses = data.get("email_addresses", [])
     primary_email_id = data.get("primary_email_address_id")
     email = ""
-    
+
     if primary_email_id:
         for email_obj in email_addresses:
             if email_obj.get("id") == primary_email_id:
                 email = email_obj.get("email_address", "")
                 break
-    
+
     # Fallback to the first email if primary not found
     if not email and email_addresses:
         email = email_addresses[0].get("email_address", "")
-        
+
     # Extract names, handling potential nulls
     first_name = data.get("first_name")
     last_name = data.get("last_name")
-    
+
     # Fallback to external accounts if names are missing at root (common in some OAuth flows)
     if (not first_name or not last_name) and data.get("external_accounts"):
         for ext in data.get("external_accounts", []):
@@ -45,11 +45,11 @@ def extract_user_data(data: dict):
                 last_name = ext.get("last_name") or ext.get("family_name")
             if first_name and last_name:
                 break
-    
+
     first_name = first_name or ""
     last_name = last_name or ""
     full_name = f"{first_name} {last_name}".strip() or "New User"
-    
+
     return clerk_id, email, full_name
 
 @router.post("/clerk")
@@ -92,13 +92,11 @@ async def clerk_webhook(
 
         if clerk_id and email:
             user_service.get_or_create_user(
-                db, 
-                clerk_id=clerk_id, 
-                email=email, 
+                db,
+                clerk_id=clerk_id,
+                email=email,
                 full_name=full_name
             )
             logger.info(f"User {clerk_id} synchronized successfully ({event_type})")
-
-    return {"status": "ok"}
 
     return {"status": "ok"}

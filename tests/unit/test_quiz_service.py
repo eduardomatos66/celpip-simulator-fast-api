@@ -28,7 +28,7 @@ def test_quiz_service_methods(db_session):
     # Test get_parts
     parts = quiz_service.get_parts(db_session)
     assert len(parts) >= 1
-    
+
     # Test get_part_by_id
     fetched_part = quiz_service.get_part_by_id(db_session, part.part_id)
     assert fetched_part is not None

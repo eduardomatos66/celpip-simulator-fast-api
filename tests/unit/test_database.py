@@ -7,11 +7,11 @@ def test_get_db_generator():
     with patch("app.core.database.SessionLocal") as mock_session_local:
         mock_db = MagicMock()
         mock_session_local.return_value = mock_db
-        
+
         # Next yields the db
         db_instance = next(db_gen)
         assert db_instance == mock_db
-        
+
         # Completing the generator closes the db
         with pytest.raises(StopIteration):
             next(db_gen)

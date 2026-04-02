@@ -24,19 +24,19 @@ async def check_url_validity(url: str) -> bool:
 async def check_links(db: Session) -> dict:
     """Finds dead links in options, questions, and sections."""
     issues = []
-    
+
     # Options
     for option in db.query(Option).all():
         if option.text and option.text.startswith("http"):
             if not await check_url_validity(option.text):
                 issues.append(f"Option ID {option.option_id} invalid link: {option.text}")
-                
+
     # Questions
     for question in db.query(Question).all():
         if question.audio_link and question.audio_link.startswith("http"):
             if not await check_url_validity(question.audio_link):
                 issues.append(f"Question ID {question.question_id} invalid audio: {question.audio_link}")
-                
+
     # Sections
     for section in db.query(Section).all():
         links = [
@@ -51,7 +51,7 @@ async def check_links(db: Session) -> dict:
 
     for issue in issues:
         logger.warning(issue)
-        
+
     return {"issues_found": len(issues), "details": issues}
 
 
@@ -65,7 +65,7 @@ def check_non_valid_questions(db: Session) -> dict:
             if not has_correct:
                 invalid_qs.append(question.question_id)
                 logger.warning(f"Question {question.question_id} has no correct option.")
-                
+
     return {"invalid_questions_count": len(invalid_qs), "question_ids": invalid_qs}
 
 

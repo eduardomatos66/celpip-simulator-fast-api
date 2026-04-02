@@ -15,7 +15,7 @@ from sqlalchemy.pool import StaticPool
 
 # Synchronous SQLite in-memory engine for model testing
 engine = create_engine(
-    "sqlite:///:memory:", 
+    "sqlite:///:memory:",
     connect_args={"check_same_thread": False},
     poolclass=StaticPool
 )
@@ -48,10 +48,10 @@ async def client() -> AsyncClient:
     # Override the dependency to use the test DB and Mock Auth
     app.dependency_overrides[get_db] = lambda: TestingSessionLocal()
     app.dependency_overrides[get_current_user_claims] = lambda: {"sub": "test_clerk", "email": "test@example.com"}
-    
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
-        
+
     app.dependency_overrides.clear()
 
 
@@ -59,8 +59,8 @@ async def client() -> AsyncClient:
 async def unauth_client() -> AsyncClient:
     """Unauthenticated Async HTTP test client wired to the FastAPI ASGI app with mocked DB."""
     app.dependency_overrides[get_db] = lambda: TestingSessionLocal()
-    
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
-        
+
     app.dependency_overrides.clear()

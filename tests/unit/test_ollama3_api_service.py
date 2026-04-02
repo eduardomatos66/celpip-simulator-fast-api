@@ -10,7 +10,7 @@ async def test_get_ollama3_response_success():
         mock_resp.json.return_value = {"response": '{"generalAverageCLB": {"gradeCLB": 9}}'}
         mock_resp.raise_for_status.return_value = None
         mock_post.return_value = mock_resp
-        
+
         evaluation = await get_ollama3_response("Test prompt")
         assert evaluation is not None
         assert evaluation.generalAverageCLB.gradeCLB == 9

@@ -24,7 +24,7 @@ class TestAvailable(Base):
 
     test_id: Mapped[int] = mapped_column("available_test_id", primary_key=True, autoincrement=True)
     test_name: Mapped[str] = mapped_column(String(255))
-    
+
     test_areas: Mapped[List["TestArea"]] = relationship(
         "TestArea", back_populates="test_available", cascade="all, delete-orphan"
     )
@@ -36,13 +36,13 @@ class TestArea(Base):
 
     test_area_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     available_test_id: Mapped[Optional[int]] = mapped_column(ForeignKey("test_available.available_test_id"))
-    
+
     area: Mapped[AreaTest] = mapped_column(Enum(AreaTest))
-    
+
     # A single part representing this specific test area
     part_id: Mapped[Optional[int]] = mapped_column(ForeignKey("part.part_id"))
     part: Mapped[Optional["Part"]] = relationship("Part")
-    
+
     test_available: Mapped[Optional["TestAvailable"]] = relationship(
         "TestAvailable", back_populates="test_areas"
     )
@@ -79,7 +79,7 @@ class Section(Base):
 
     section_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     part_id: Mapped[Optional[int]] = mapped_column(ForeignKey("part.part_id"))
-    
+
     section_number: Mapped[Optional[int]] = mapped_column(Integer)
     text: Mapped[Optional[str]] = mapped_column(Text)  # length=5000 in Java
     time: Mapped[Optional[int]] = mapped_column(Integer)
@@ -89,7 +89,7 @@ class Section(Base):
     text_question_content: Mapped[Optional[str]] = mapped_column(Text)  # length=5000 in Java
 
     part: Mapped[Optional["Part"]] = relationship("Part", back_populates="sections")
-    
+
     questions: Mapped[List["Question"]] = relationship(
         "Question", back_populates="section", cascade="all, delete-orphan"
     )
@@ -100,7 +100,7 @@ class Question(Base):
 
     question_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     section_id: Mapped[Optional[int]] = mapped_column(ForeignKey("section.section_id"))
-    
+
     question_number: Mapped[Optional[int]] = mapped_column(Integer)
     time: Mapped[Optional[int]] = mapped_column(Integer)
     audio_link: Mapped[Optional[str]] = mapped_column(String(2000))
@@ -118,8 +118,8 @@ class Option(Base):
 
     option_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     question_id: Mapped[Optional[int]] = mapped_column(ForeignKey("question.question_id"))
-    
+
     text: Mapped[Optional[str]] = mapped_column(Text)
     is_correct: Mapped[Optional[bool]] = mapped_column("is_correct", default=False)
-    
+
     question: Mapped[Optional["Question"]] = relationship("Question", back_populates="options")

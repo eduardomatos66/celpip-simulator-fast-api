@@ -31,7 +31,7 @@ async def test_409_integrity_error(client: AsyncClient):
     with patch("app.services.test_area_service.get_test_areas") as mock_get:
         mock_get.side_effect = IntegrityError(None, None, Exception("Simulation"))
         response = await client.get("/api/v1/test-areas")
-    
+
     assert response.status_code == 409
     data = response.json()
     assert "error" in data
@@ -47,7 +47,7 @@ async def test_500_internal_error():
         with patch("app.services.test_area_service.get_test_areas") as mock_get:
             mock_get.side_effect = Exception("System Crash!")
             response = await safe_client.get("/api/v1/test-areas")
-        
+
         assert response.status_code == 500
         data = response.json()
         assert "error" in data

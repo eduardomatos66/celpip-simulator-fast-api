@@ -134,4 +134,3 @@ redirect('/waiting-approval')
 4. Admin approves
 5. User logs in again
 6. Full access granted
-

@@ -20,7 +20,7 @@ async def test_submit_answer_sheet(client: AsyncClient):
         ]
     }
     response = await client.post("/api/v1/answer-sheets", json=payload)
-    
+
     # Can return 404 missing user or test, but endpoint logic must be hit
     # With a fresh memory DB we expect the code to reach internal logic safely
     assert response.status_code in [200, 404, 400]

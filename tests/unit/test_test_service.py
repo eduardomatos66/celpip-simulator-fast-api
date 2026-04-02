@@ -29,13 +29,13 @@ async def test_get_test_available_by_id_cached_hit(db_session):
 async def test_get_test_available_by_id_cached_miss_and_store(db_session):
     mock_redis = AsyncMock()
     mock_redis.get.return_value = None
-    
+
     t = TestAvailable(test_id=101, test_name="TestMiss")
     db_session.add(t)
     db_session.commit()
 
     result = await test_service.get_test_available_by_id_cached(db_session, mock_redis, 101)
-    
+
     assert result["test_id"] == 101
     mock_redis.get.assert_called_once_with("cache:tests:101")
     mock_redis.set.assert_called_once()
@@ -68,7 +68,7 @@ async def test_get_tests_summary_cached_miss(db_session):
     t = TestAvailable(test_id=105, test_name="TestMissSumm")
     db_session.add(t)
     db_session.commit()
-    
+
     result = await test_service.get_tests_summary_cached(db_session, mock_redis)
     assert len(result) >= 1
     mock_redis.set.assert_called_once()

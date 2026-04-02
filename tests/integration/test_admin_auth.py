@@ -18,9 +18,9 @@ async def test_admin_authorization_flow(client: AsyncClient, db_session: Session
     # 2. Create another user (not authorized)
     from app.main import app
     from app.core.deps import get_current_user_claims
-    
+
     app.dependency_overrides[get_current_user_claims] = lambda: {"sub": "user_2", "email": "user2@example.com", "name": "User Two"}
-    
+
     response = await client.get("/api/v1/users/me")
     assert response.status_code == 200
     data = response.json()
@@ -36,7 +36,7 @@ async def test_admin_authorization_flow(client: AsyncClient, db_session: Session
 
     # 4. Admin (user 1) authorizes user 2
     app.dependency_overrides[get_current_user_claims] = lambda: {"sub": "test_clerk", "email": "test@example.com"}
-    
+
     # List pending users
     response = await client.get("/api/v1/admin/users/pending")
     assert response.status_code == 200
@@ -50,7 +50,7 @@ async def test_admin_authorization_flow(client: AsyncClient, db_session: Session
 
     # 5. User 2 tries to access protected endpoint again
     app.dependency_overrides[get_current_user_claims] = lambda: {"sub": "user_2", "email": "user2@example.com", "name": "User Two"}
-    
+
     response = await client.get("/api/v1/test-results/user")
     assert response.status_code != 403
 
@@ -71,5 +71,5 @@ async def test_admin_authorization_flow(client: AsyncClient, db_session: Session
     response = await client.get("/api/v1/test-results/user")
     assert response.status_code == 403
     assert "denied" in response.json()["error"]["message"].lower()
-    
+
     app.dependency_overrides.clear()

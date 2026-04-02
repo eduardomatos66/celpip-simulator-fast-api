@@ -26,7 +26,7 @@ def get_tests_summary(db: Session) -> List[TestAvailable]:
 @log_execution_time
 async def get_test_available_by_id_cached(db: Session, redis_client: redis.Redis, test_id: int) -> Optional[dict]:
     cache_key = f"cache:tests:{test_id}"
-    
+
     if redis_client:
         cached = await redis_client.get(cache_key)
         if cached:
@@ -37,16 +37,16 @@ async def get_test_available_by_id_cached(db: Session, redis_client: redis.Redis
         return None
 
     test_schema = TestAvailableRead.model_validate(test_data).model_dump(mode="json")
-    
+
     if redis_client:
         await redis_client.set(cache_key, json.dumps(test_schema), ex=3600)
-        
+
     return test_schema
 
 @log_execution_time
 async def get_tests_summary_cached(db: Session, redis_client: redis.Redis) -> List[dict]:
     cache_key = "cache:tests:summary"
-    
+
     if redis_client:
         cached = await redis_client.get(cache_key)
         if cached:
@@ -54,10 +54,10 @@ async def get_tests_summary_cached(db: Session, redis_client: redis.Redis) -> Li
 
     tests_data = await run_in_threadpool(get_tests_summary, db)
     tests_schema = [TestAvailableRead.model_validate(t).model_dump(mode="json") for t in tests_data]
-    
+
     if redis_client:
         await redis_client.set(cache_key, json.dumps(tests_schema), ex=3600)
-        
+
     return tests_schema
 
 @log_execution_time

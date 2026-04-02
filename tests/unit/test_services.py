@@ -15,7 +15,7 @@ def test_user_service_get_or_create(db_session):
     user = get_or_create_user(db_session, "clerk_123", "test@example.com", "Test User")
     assert user.id is not None
     assert user.email == "test@example.com"
-    
+
     # Second fetch should return the same user, not create a duplicate
     user_duplicate = get_or_create_user(db_session, "clerk_123", "test@example.com", "Test User")
     assert user.id == user_duplicate.id
@@ -23,7 +23,7 @@ def test_user_service_get_or_create(db_session):
 def test_answer_scoring_service(db_session):
     # Preload the in-memory test DB with a user and test structures
     user = get_or_create_user(db_session, "clerk_test", "user@test.com", "User")
-    
+
     test_av = TestAvailable(test_name="Mock CELPIP Test")
     part = Part(part_name="Listening Part 1")
     sec = Section(part=part)
@@ -35,7 +35,7 @@ def test_answer_scoring_service(db_session):
     q2 = Question(section=sec)
     opt3 = Option(text="Apple", is_correct=True, question=q2)
     opt4 = Option(text="Orange", is_correct=False, question=q2)
-    
+
     db_session.add_all([test_av, part, sec, q1, opt1, opt2, q2, opt3, opt4])
     db_session.commit()
 
@@ -57,7 +57,7 @@ def test_answer_scoring_service(db_session):
     results = get_results_for_user(db_session, user.id)
     assert len(results) == 1
     tr = results[0]
-    
+
     # 1 correct out of 2 MCQs. The simulated math in the backend puts logic around this.
     # Total correct = 1. Half correct = 0.5. Half MCQ = 1.0. (0.5 / 1.0) = 50% = CLB 6 according to the placeholder math!
     assert tr.clb_min is not None

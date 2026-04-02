@@ -34,14 +34,14 @@ def submit_answer_sheet(db: Session, sheet_in: AnswerSheetCreate, user_id: int) 
     for ans in sheet_in.option_answers:
         # Resolve correct answer
         question_id = int(ans.question_id) if ans.question_id.isdigit() else None
-        
+
         correct_text = None
         if question_id:
             options = get_options_by_question(db, question_id)
             correct_opt = next((opt for opt in options if opt.is_correct), None)
             if correct_opt:
                 correct_text = correct_opt.text
-                
+
         db_opt_answer = OptionAnswer(
             answer_sheet_id=db_sheet.answer_sheet_id,
             question_id=ans.question_id,

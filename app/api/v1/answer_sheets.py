@@ -26,8 +26,8 @@ def get_answer_sheet(sheet_id: int, user: AuthorizedUser, db: Session = Depends(
     sheet = answer_sheet_service.get_answer_sheet_by_id(db, sheet_id=sheet_id)
     if not sheet:
         raise HTTPException(status_code=404, detail="Answer sheet not found")
-        
+
     if sheet.user_id != user.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this sheet")
-        
+
     return sheet

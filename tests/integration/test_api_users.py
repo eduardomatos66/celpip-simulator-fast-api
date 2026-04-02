@@ -12,7 +12,7 @@ app.dependency_overrides[get_current_user_claims] = override_get_current_user_cl
 async def test_get_current_user_profile(client: AsyncClient):
     response = await client.get("/api/v1/users/me")
     assert response.status_code == 200
-    
+
     data = response.json()
     assert data["clerk_id"] == "test_clerk"
     assert data["email"] == "test@example.com"

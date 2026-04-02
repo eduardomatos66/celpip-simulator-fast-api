@@ -18,13 +18,14 @@ async def get_tests(
     tests = await test_service.get_tests_summary_cached(db, redis_client)
     return tests
 
-@router.get("/test-available", response_model=List[TestAvailableRead])
-async def get_tests_compatibility(
-    db: Session = Depends(get_db),
-    redis_client: redis.Redis = Depends(get_redis)
+
+@router.get("/all", response_model=List[TestAvailableRead])
+def get_all_tests_full(
+    db: Session = Depends(get_db)
 ):
-    """Alias for /test-available to match frontend requests."""
-    return await test_service.get_tests_summary_cached(db, redis_client)
+    """Retrieve all tests with their full hierarchy."""
+    return test_service.get_tests_full(db)
+
 
 @router.get("/{test_id}", response_model=TestAvailableRead)
 async def get_test(
@@ -37,10 +38,3 @@ async def get_test(
     if not test_av:
         raise HTTPException(status_code=404, detail="Test not found")
     return test_av
-
-@router.get("/all", response_model=List[TestAvailableRead])
-def get_all_tests_full(
-    db: Session = Depends(get_db)
-):
-    """Retrieve all tests with their full hierarchy."""
-    return test_service.get_tests_full(db)
