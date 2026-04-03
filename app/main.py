@@ -26,10 +26,59 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
+    tags_metadata = [
+        {
+            "name": "Users",
+            "description": "Operations with users. Registering, updating, and administrative authorization.",
+        },
+        {
+            "name": "Test Available",
+            "description": "Access to CELPIP practice tests. Includes minimal names and full hierarchical views.",
+        },
+        {
+            "name": "Answer Sheets",
+            "description": "Submission and retrieval of user answer sheets for evaluation.",
+        },
+        {
+            "name": "Test Results",
+            "description": "Retrieval of scored test results, including CLB averages and individual skill scores.",
+        },
+        {
+            "name": "Parts",
+            "description": "Management of test parts (Listening, Reading, Writing, Speaking).",
+        },
+        {
+            "name": "Sections",
+            "description": "Management of sections within test parts.",
+        },
+        {
+            "name": "Admin",
+            "description": "Administrative actions, such as user authorization and advanced configuration.",
+        },
+        {
+            "name": "Health",
+            "description": "System health checks.",
+        },
+    ]
+
     app = FastAPI(
         title="CELPIP Simulator API",
-        description="Backend API for the CELPIP Simulator practice platform.",
-        version="1.0.0",
+        description="""
+# CELPIP Simulator API
+Backend API for the CELPIP Simulator practice platform.
+
+## Features
+- **Comprehensive CELPIP Tests**: Access listening, reading, writing, and speaking practice.
+- **Automated Grading**: Instant results for multiple-choice questions.
+- **Clerk Integration**: Secure authentication and user management.
+- **Performance Tracking**: View history and CLB-aligned scoring.
+        """,
+        version="1.1.0",
+        contact={
+            "name": "Eduardo Matos",
+            "url": "https://github.com/eduardomatos66",
+        },
+        openapi_tags=tags_metadata,
         docs_url="/docs",
         redoc_url="/redoc",
         lifespan=lifespan,

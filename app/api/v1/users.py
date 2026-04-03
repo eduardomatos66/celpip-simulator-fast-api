@@ -7,19 +7,16 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.get("", response_model=List[str])
+@router.get("",
+    response_model=List[str],
+    summary="List All Registered Users",
+    description="Retrieve a list of all user emails registered in the system. Mainly used for administrative overview.")
 def list_users(db: Session = Depends(get_db)):
-    """
-    Compatibility: List all users (emails only).
-    The frontend fetchUsers expects a string array.
-    """
     return [u.email for u in db.query(User).all()]
 
-@router.get("/me", response_model=UserRead)
+@router.get("/me",
+    response_model=UserRead,
+    summary="Get My Profile",
+    description="Retrieve the authenticated user's profile details. This endpoint also ensures the local database record exists, creating it if necessary (JIT provisioning).")
 async def get_current_user_profile(user: CurrentUser):
-    """
-    Get the current user's profile.
-    This also behaves as a login sync endpoint, creating the local User DB record
-    if this is the first time the user logs in through Clerk.
-    """
     return user
