@@ -17,8 +17,8 @@ async def get_all_test_available(
     db: Session = Depends(get_db),
     redis_client: redis.Redis = Depends(get_redis)
 ):
-    # We use the summary service which is already optimized/cached
-    tests = await test_service.get_tests_summary_cached(db, redis_client)
+    # Use the optimized minimal query service
+    tests = await test_service.get_tests_minimal_cached(db, redis_client)
     return tests
 
 

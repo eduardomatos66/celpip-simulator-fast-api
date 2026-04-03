@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 from fastapi.concurrency import run_in_threadpool
 from fastapi.encoders import jsonable_encoder
 from app.models.quiz import TestAvailable, TestArea, Part, Section, Question, Option, AreaTest
-from app.schemas.quiz import TestAvailableRead
+from app.schemas.quiz import TestAvailableRead, TestAvailableMinimalRead
 from app.core.decorators import log_execution_time
 
 @log_execution_time
@@ -22,6 +22,12 @@ def get_tests_summary(db: Session) -> List[TestAvailable]:
     return db.query(TestAvailable).options(
         joinedload(TestAvailable.test_areas)
     ).all()
+
+@log_execution_time
+def get_tests_minimal(db: Session) -> List[TestAvailable]:
+    """Retrieve only the IDs and names of all tests (optimized)."""
+    # Specifically select only the necessary columns to avoid full table scan/deep fetches
+    return db.query(TestAvailable.test_id, TestAvailable.test_name).all()
 
 @log_execution_time
 async def get_test_available_by_id_cached(db: Session, redis_client: redis.Redis, test_id: int) -> Optional[dict]:
@@ -54,6 +60,25 @@ async def get_tests_summary_cached(db: Session, redis_client: redis.Redis) -> Li
 
     tests_data = await run_in_threadpool(get_tests_summary, db)
     tests_schema = [TestAvailableRead.model_validate(t).model_dump(mode="json") for t in tests_data]
+
+    if redis_client:
+        await redis_client.set(cache_key, json.dumps(tests_schema), ex=3600)
+
+    return tests_schema
+
+@log_execution_time
+async def get_tests_minimal_cached(db: Session, redis_client: redis.Redis) -> List[dict]:
+    """Retrieve and cache only IDs and names for the public tests list."""
+    cache_key = "cache:tests:minimal"
+
+    if redis_client:
+        cached = await redis_client.get(cache_key)
+        if cached:
+            return json.loads(cached)
+
+    tests_data = await run_in_threadpool(get_tests_minimal, db)
+    # Validate and dump using the minimal schema for efficiency
+    tests_schema = [TestAvailableMinimalRead.model_validate(t).model_dump(mode="json") for t in tests_data]
 
     if redis_client:
         await redis_client.set(cache_key, json.dumps(tests_schema), ex=3600)
