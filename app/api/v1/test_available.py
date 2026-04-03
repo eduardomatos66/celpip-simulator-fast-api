@@ -9,7 +9,7 @@ from app.services import test_service
 
 router = APIRouter()
 
-@router.get("/all",
+@router.get("",
     response_model=List[TestAvailableMinimalRead],
     summary="List All Available Tests (Names Only)",
     description="Retrieve a list of all available CELPIP tests, providing only the test ID and name.")

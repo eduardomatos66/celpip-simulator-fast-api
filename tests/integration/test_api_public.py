@@ -4,8 +4,8 @@ from httpx import AsyncClient
 @pytest.mark.asyncio
 async def test_public_routes_accessible_without_auth(unauth_client: AsyncClient):
     """Verify that public routes are accessible without a token."""
-    # /api/v1/test-available/all should be public
-    response = await unauth_client.get("/api/v1/test-available/all")
+    # /api/v1/test-available should be public
+    response = await unauth_client.get("/api/v1/test-available")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
     # Verify only test_id and test_name are present (minimal schema)
