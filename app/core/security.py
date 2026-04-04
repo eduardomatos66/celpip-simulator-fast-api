@@ -62,44 +62,96 @@ async def verify_clerk_token(token: str) -> Dict[str, Any]:
 
 
 async def _decode_and_verify(token: str) -> Dict[str, Any]:
-    # If a local public key (PEM) is provided, use it for faster/offline verification
-    if settings.CLERK_JWT_KEY:
-        try:
-            return jwt.decode(
-                token,
-                settings.CLERK_JWT_KEY,
-                algorithms=["RS256"],
-                audience=settings.CLERK_AUDIENCE or None,
-                issuer=settings.CLERK_ISSUER_URL or None,
-                options={
-                    "verify_aud": bool(settings.CLERK_AUDIENCE),
-                    "verify_iss": bool(settings.CLERK_ISSUER_URL),
-                },
-            )
-        except JWTError as e:
-            logger.error(f"Local JWT verification failed: {e}")
-            raise
+    # We allow a small mismatch in trailing slashes for issuer/audience
+    # as this is a common Clerk config pitfall.
+    issuer = settings.CLERK_ISSUER_URL.rstrip("/") if settings.CLERK_ISSUER_URL else None
+    audience = settings.CLERK_AUDIENCE.rstrip("/") if settings.CLERK_AUDIENCE else None
 
-    # Fallback to JWKS verification
-    jwks = await _get_jwks()
-    return jwt.decode(
-        token,
-        jwks,
-        algorithms=["RS256"],
-        audience=settings.CLERK_AUDIENCE or None,
-        issuer=settings.CLERK_ISSUER_URL or None,
-        options={
-            "verify_aud": bool(settings.CLERK_AUDIENCE),
-            "verify_iss": bool(settings.CLERK_ISSUER_URL),
-        },
-    )
+    verify_options = {
+        "verify_aud": bool(audience),
+        "verify_iss": bool(issuer),
+        "leeway": 300, # 5 minutes leeway (in seconds)
+    }
+
+    # Internal helper to try decoding with and without trailing slashes
+    def _do_decode(jwk_or_key, iss, aud):
+        return jwt.decode(
+            token,
+            jwk_or_key,
+            algorithms=["RS256"],
+            audience=aud,
+            issuer=iss,
+            options=verify_options,
+        )
+
+    try:
+        # 1. Try Local PEM if available
+        if settings.CLERK_JWT_KEY:
+            try:
+                # Try primary match
+                return _do_decode(settings.CLERK_JWT_KEY, issuer, audience)
+            except JWTError as e:
+                if "Invalid issuer" in str(e) and issuer:
+                    # Retry with trailing slash if configured without one
+                    try:
+                        return _do_decode(settings.CLERK_JWT_KEY, f"{issuer}/", audience)
+                    except JWTError:
+                        raise e
+                if "Invalid audience" in str(e) and audience:
+                    # Retry with trailing slash
+                    try:
+                        return _do_decode(settings.CLERK_JWT_KEY, issuer, f"{audience}/")
+                    except JWTError:
+                        raise e
+                raise
+
+        # 2. Fallback to JWKS verification
+        jwks = await _get_jwks()
+        try:
+            return _do_decode(jwks, issuer, audience)
+        except JWTError as e:
+            if "Invalid issuer" in str(e) and issuer:
+                 try:
+                    return _do_decode(jwks, f"{issuer}/", audience)
+                 except JWTError:
+                    raise e
+            if "Invalid audience" in str(e) and audience:
+                 try:
+                    return _do_decode(jwks, issuer, f"{audience}/")
+                 except JWTError:
+                    raise e
+            raise
+    except JWTError as e:
+        # Debugging: Peek into the token without verification to see what's actually there
+        try:
+            unverified_claims = jwt.get_unverified_claims(token)
+            logger.error(
+                f"JWT verification failed: {e}. "
+                f"Configured issuer: {issuer}, Configured audience: {audience}. "
+                f"Token claims (unverified): {unverified_claims}"
+            )
+        except Exception:
+            logger.error(f"JWT verification failed: {e}. Could not parse unverified claims.")
+        raise
 
 
 def _handle_auth_error(exc: Exception):
     error_msg = str(exc)
-    logger.warning(f"Authentication failed: {error_msg}")
+    # Be more descriptive for common Clerk issues
+    if "Signature has expired" in error_msg:
+        detail = "Your session has expired. Please log in again."
+    elif "Invalid issuer" in error_msg:
+        detail = f"Authentication configuration mismatch (Issuer). {error_msg}"
+    elif "Invalid audience" in error_msg:
+        detail = f"Authentication configuration mismatch (Audience). {error_msg}"
+    elif "Key not found" in error_msg:
+        detail = "Authentication key rotation error. Please try again in 1 minute."
+    else:
+        detail = f"Authentication failed: {error_msg}"
+
+    logger.warning(f"Returning 401: {detail}. Check your .env CLERK_ISSUER_URL and CLERK_AUDIENCE.")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f"Authentication failed: {error_msg}",
+        detail=detail,
         headers={"WWW-Authenticate": "Bearer"},
     )

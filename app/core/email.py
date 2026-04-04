@@ -21,3 +21,10 @@ def send_pending_email(email: str, full_name: str):
     """
     logger.info(f"📧 EMAIL: Sending pending review email to {email}")
     print(f"To: {email}\nSubject: CELPIP Simulator — Account Under Review\nBody: Hello {full_name}, your account is currently under review by our admins.")
+
+def send_revocation_email(email: str, full_name: str):
+    """
+    Mock email sender for account revocation.
+    """
+    logger.info(f"📧 EMAIL: Sending revocation email to {email}")
+    print(f"To: {email}\nSubject: CELPIP Simulator — Access Revoked\nBody: Hello {full_name}, your access to the CELPIP simulator has been revoked by an administrator.")

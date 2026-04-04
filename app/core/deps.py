@@ -37,14 +37,25 @@ async def get_current_user_claims(
     """
     Verify the Bearer token and return the decoded Clerk JWT claims.
     """
+    if not credentials or not credentials.credentials:
+        logger.warning("No credentials provided to get_current_user_claims.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication token.",
+        )
+
+    token = credentials.credentials
+    logger.debug(f"Verifying token (starts with: {token[:10]}...)")
+
     try:
-        claims = await verify_clerk_token(credentials.credentials)
+        claims = await verify_clerk_token(token)
+        logger.debug(f"Successfully decoded claims: {claims.keys()}")
         return claims
     except HTTPException:
         # Re-raise HTTPExceptions from verify_clerk_token (already logged there)
         raise
     except Exception as e:
-        logger.error(f"Unexpected error during token verification: {e}")
+        logger.error(f"Unexpected error during token verification: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials.",

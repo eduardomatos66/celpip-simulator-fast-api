@@ -8,11 +8,11 @@ from app.models.user import User
 router = APIRouter()
 
 @router.get("",
-    response_model=List[str],
+    response_model=List[UserRead],
     summary="List All Registered Users",
-    description="Retrieve a list of all user emails registered in the system. Mainly used for administrative overview.")
+    description="Retrieve a list of all user profiles registered in the system. Mainly used for administrative overview.")
 def list_users(db: Session = Depends(get_db)):
-    return [u.email for u in db.query(User).all()]
+    return db.query(User).all()
 
 @router.get("/me",
     response_model=UserRead,

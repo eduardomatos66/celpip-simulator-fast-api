@@ -16,6 +16,16 @@ def get_pending_users(
 ):
     return user_service.list_pending_users(db)
 
+@router.get("/users",
+    response_model=List[UserRead],
+    summary="List All Users",
+    description="Retrieve a list of all users in the system. Requires admin privileges.")
+def get_all_users(
+    db: DBSession,
+    admin: AdminUser
+):
+    return user_service.list_all_users(db)
+
 @router.post("/users/{user_id}/authorize",
     response_model=UserRead,
     summary="Authorize User",
@@ -40,6 +50,20 @@ def reject_user(
     admin: AdminUser
 ):
     user = user_service.reject_user(db, user_id=user_id, admin_id=admin.id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@router.post("/users/{user_id}/revoke",
+    response_model=UserRead,
+    summary="Revoke User Access",
+    description="Immediately strip a user's access to the platform. Requires admin privileges.")
+def revoke_user(
+    user_id: int,
+    db: DBSession,
+    admin: AdminUser
+):
+    user = user_service.revoke_user(db, user_id=user_id, admin_id=admin.id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

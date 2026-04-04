@@ -13,7 +13,7 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int = Field(..., description="Internal database unique identifier")
     clerk_id: str = Field(..., description="The unique identity provider ID from Clerk")
-    status: UserStatus = Field(..., description="Current status of the user (PENDING, AUTHORIZED, REJECTED)")
+    status: UserStatus = Field(..., description="Current status of the user (PENDING, APPROVED, REJECTED)")
     is_admin: bool = Field(..., description="Whether the user has administrative privileges")
     authorized_at: Optional[datetime] = Field(None, description="Timestamp when the user was authorized")
     authorized_by_admin_id: Optional[int] = Field(None, description="The ID of the admin who authorized this user")

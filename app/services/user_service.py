@@ -100,6 +100,11 @@ def list_pending_users(db: Session):
     return db.query(User).filter(User.status == UserStatus.PENDING).all()
 
 @log_execution_time
+def list_all_users(db: Session):
+    """List all registered users."""
+    return db.query(User).order_by(User.id).all()
+
+@log_execution_time
 def authorize_user(db: Session, user_id: int, admin_id: int) -> Optional[User]:
     """Authorize a user by an admin."""
     user = db.query(User).filter(User.id == user_id).first()
@@ -131,6 +136,25 @@ def reject_user(db: Session, user_id: int, admin_id: int) -> Optional[User]:
 
         # Notify user
         email_service.send_rejection_email(user.email, user.full_name)
+
+        # Sync with Clerk
+        _sync_user_to_clerk(user)
+
+    return user
+
+@log_execution_time
+def revoke_user(db: Session, user_id: int, admin_id: int) -> Optional[User]:
+    """Revoke authorized access from a user."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.status = UserStatus.REJECTED
+        user.authorized_at = datetime.now()
+        user.authorized_by_admin_id = admin_id
+        db.commit()
+        db.refresh(user)
+
+        # Notify user with a revocation email
+        email_service.send_revocation_email(user.email, user.full_name)
 
         # Sync with Clerk
         _sync_user_to_clerk(user)
