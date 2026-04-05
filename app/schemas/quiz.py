@@ -33,7 +33,6 @@ class QuestionUpdate(QuestionBase):
 
 class QuestionRead(QuestionBase):
     question_id: int = Field(..., description="Unique identifier for the question")
-    section_id: Optional[int] = Field(None, description="The ID of the section this question belongs to")
     options: List[OptionRead] = Field([], description="List of options for this question")
     model_config = ConfigDict(from_attributes=True)
 
@@ -55,7 +54,6 @@ class SectionUpdate(SectionBase):
 
 class SectionRead(SectionBase):
     section_id: int = Field(..., description="Unique identifier for the section")
-    part_id: Optional[int] = Field(None, description="The ID of the part this section belongs to")
     questions: List[QuestionRead] = Field([], description="List of questions in this section")
     model_config = ConfigDict(from_attributes=True)
 
@@ -98,7 +96,6 @@ class PartRead(PartBase):
 # --- Test Areas ---
 class TestAreaBase(BaseModel):
     area: AreaTest = Field(..., description="The area of the test (LISTENING, READING, WRITING, SPEAKING)")
-    part_id: Optional[int] = Field(None, description="The ID of the first part in this area")
 
 class TestAreaCreate(TestAreaBase):
     __test__ = False
@@ -108,8 +105,7 @@ class TestAreaUpdate(TestAreaBase):
 
 class TestAreaRead(TestAreaBase):
     test_area_id: int = Field(..., description="Unique identifier for the test area record")
-    available_test_id: Optional[int] = Field(None, description="The ID of the parent test")
-    part: Optional[PartRead] = Field(None, description="The full hierarchy of parts, sections, and questions")
+    parts: List[PartRead] = Field([], description="The list of parts in this area")
     model_config = ConfigDict(from_attributes=True)
 
 # --- Test Available ---
@@ -126,6 +122,7 @@ class TestAvailableRead(TestAvailableBase):
     test_id: int = Field(..., description="Unique identifier for the test")
     test_areas: List[TestAreaRead] = Field([], description="Hierarchical data for all areas of this test")
     model_config = ConfigDict(from_attributes=True)
+
 
 class TestAvailableMinimalRead(BaseModel):
     test_id: int = Field(..., description="Unique identifier for the test")

@@ -1,7 +1,8 @@
 from typing import List, Optional
 import json
 import redis.asyncio as redis
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import select
+from sqlalchemy.orm import Session, joinedload, selectinload
 from fastapi.concurrency import run_in_threadpool
 from fastapi.encoders import jsonable_encoder
 from app.models.quiz import TestAvailable, TestArea, Part, Section, Question, Option, AreaTest
@@ -11,10 +12,22 @@ from app.core.decorators import log_execution_time
 @log_execution_time
 def get_test_available_by_id(db: Session, test_id: int) -> Optional[TestAvailable]:
     """Retrieve a specific test with its full hierarchy."""
-    return db.query(TestAvailable).options(
-        joinedload(TestAvailable.test_areas).joinedload(TestArea.part).joinedload(Part.introduction),
-        joinedload(TestAvailable.test_areas).joinedload(TestArea.part).joinedload(Part.sections).joinedload(Section.questions).joinedload(Question.options)
-    ).filter(TestAvailable.test_id == test_id).first()
+    query = (
+        select(TestAvailable)
+        .where(TestAvailable.test_id == test_id)
+        .options(
+            selectinload(TestAvailable.test_areas)
+            .selectinload(TestArea.parts)
+            .options(
+                selectinload(Part.introduction),
+                selectinload(Part.sections)
+                .selectinload(Section.questions)
+                .selectinload(Question.options)
+            )
+        )
+    )
+    result = db.execute(query)
+    return result.scalar_one_or_none()
 
 @log_execution_time
 def get_tests_summary(db: Session) -> List[TestAvailable]:
@@ -88,7 +101,18 @@ async def get_tests_minimal_cached(db: Session, redis_client: redis.Redis) -> Li
 @log_execution_time
 def get_tests_full(db: Session) -> List[TestAvailable]:
     """Retrieve all tests with their full hierarchy."""
-    return db.query(TestAvailable).options(
-        joinedload(TestAvailable.test_areas).joinedload(TestArea.part).joinedload(Part.introduction),
-        joinedload(TestAvailable.test_areas).joinedload(TestArea.part).joinedload(Part.sections).joinedload(Section.questions).joinedload(Question.options)
-    ).all()
+    query = (
+        select(TestAvailable)
+        .options(
+            selectinload(TestAvailable.test_areas)
+            .selectinload(TestArea.parts)
+            .options(
+                selectinload(Part.introduction),
+                selectinload(Part.sections)
+                .selectinload(Section.questions)
+                .selectinload(Question.options)
+            )
+        )
+    )
+    result = db.execute(query)
+    return list(result.scalars().all())
