@@ -1,5 +1,5 @@
-from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from typing import List, Optional, Any, Union
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, AliasChoices
 from app.models.quiz import AreaTest
 
 # --- Options ---
@@ -13,10 +13,15 @@ class OptionCreate(OptionBase):
 class OptionUpdate(OptionBase):
     pass
 
-class OptionRead(OptionBase):
-    option_id: int = Field(..., description="Unique identifier for the option")
-    question_id: Optional[int] = Field(None, description="The ID of the question this option belongs to")
+class OptionRead(BaseModel):
+    option_id: str = Field(..., description="Unique identifier for the option")
+    text: str = Field(..., description="The display text for this option", examples=["Option A"])
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("option_id", mode="before")
+    @classmethod
+    def transform_id_to_str(cls, v: Any) -> str:
+        return str(v)
 
 # --- Questions ---
 class QuestionBase(BaseModel):
@@ -32,9 +37,15 @@ class QuestionUpdate(QuestionBase):
     pass
 
 class QuestionRead(QuestionBase):
-    question_id: int = Field(..., description="Unique identifier for the question")
-    options: List[OptionRead] = Field([], description="List of options for this question")
+    question_id: Union[int, str] = Field(..., description="Unique identifier for the question")
+    question_number: int = Field(..., description="Ordered number of the question in its section", examples=[1])
+    options: Optional[List[OptionRead]] = Field(default_factory=list, description="List of options for this question")
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("question_id", mode="before")
+    @classmethod
+    def transform_id_to_str(cls, v: Any) -> str:
+         return str(v)
 
 # --- Sections ---
 class SectionBase(BaseModel):
@@ -53,9 +64,16 @@ class SectionUpdate(SectionBase):
     pass
 
 class SectionRead(SectionBase):
-    section_id: int = Field(..., description="Unique identifier for the section")
+    section_id: str = Field(..., description="Unique identifier for the section")
+    section_number: int = Field(..., description="Ordered number of the section in its part", examples=[1])
+    introductions: Optional[List[str]] = Field(None, description="Optional list of introductions for the section")
     questions: List[QuestionRead] = Field([], description="List of questions in this section")
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("section_id", mode="before")
+    @classmethod
+    def transform_id_to_str(cls, v: Any) -> str:
+        return str(v)
 
 # --- Part Introduction ---
 class PartIntroductionBase(BaseModel):
@@ -68,8 +86,9 @@ class PartIntroductionCreate(PartIntroductionBase):
 class PartIntroductionUpdate(PartIntroductionBase):
     pass
 
-class PartIntroductionRead(PartIntroductionBase):
-    part_introduction_id: int = Field(..., description="Unique identifier for the part introduction")
+class PartIntroductionRead(BaseModel):
+    text: str = Field(..., description="Introduction text for the part")
+    auxiliary_texts: str = Field(..., description="Additional context or shared information for the part")
     model_config = ConfigDict(from_attributes=True)
 
 # --- Parts ---
@@ -89,6 +108,9 @@ class PartUpdate(PartBase):
 
 class PartRead(PartBase):
     part_id: int = Field(..., description="Unique identifier for the part")
+    part_number: int = Field(..., description="Ordered number of the part", examples=[1])
+    part_name: str = Field(..., description="Name of the part (e.g., 'Listening Part 1')", examples=["Part 1"])
+    questions_type: str = Field(..., description="Type of questions in this part (e.g., 'MCQ')", examples=["MCQ"])
     introduction: Optional[PartIntroductionRead] = None
     sections: List[SectionRead] = Field([], description="List of sections in this part")
     model_config = ConfigDict(from_attributes=True)
@@ -103,10 +125,29 @@ class TestAreaCreate(TestAreaBase):
 class TestAreaUpdate(TestAreaBase):
     __test__ = False
 
-class TestAreaRead(TestAreaBase):
-    test_area_id: int = Field(..., description="Unique identifier for the test area record")
+class TestAreaRead(BaseModel):
+    area_id: str = Field(
+        ...,
+        description="Unique identifier for the test area record",
+        validation_alias=AliasChoices("area_id", "test_area_id")
+    )
+    area_name: AreaTest = Field(..., description="The area of the test (LISTENING, READING, WRITING, SPEAKING)")
+    time: Optional[int] = Field(None, description="Optional time for the test area")
     parts: List[PartRead] = Field([], description="The list of parts in this area")
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    @field_validator("area_id", mode="before")
+    @classmethod
+    def transform_id_to_str(cls, v: Any) -> str:
+        return str(v)
+
+    @field_validator("area_name", mode="before")
+    @classmethod
+    def normalize_area_name(cls, v: Any) -> str:
+        if isinstance(v, str):
+            return v.lower()
+        return v
+
 
 # --- Test Available ---
 class TestAvailableBase(BaseModel):
@@ -119,12 +160,24 @@ class TestAvailableUpdate(TestAvailableBase):
     pass
 
 class TestAvailableRead(TestAvailableBase):
-    test_id: int = Field(..., description="Unique identifier for the test")
+    test_id: str = Field(..., description="Unique identifier for the test")
+    user_name: Optional[str] = Field(None, description="The name of the user taking the test")
+    date: Optional[str] = Field(None, description="The date the test was taken or requested")
     test_areas: List[TestAreaRead] = Field([], description="Hierarchical data for all areas of this test")
     model_config = ConfigDict(from_attributes=True)
 
+    @field_validator("test_id", mode="before")
+    @classmethod
+    def transform_id_to_str(cls, v: Any) -> str:
+        return str(v)
+
 
 class TestAvailableMinimalRead(BaseModel):
-    test_id: int = Field(..., description="Unique identifier for the test")
+    test_id: str = Field(..., description="Unique identifier for the test")
     test_name: str = Field(..., description="The name of the test", examples=["CELPIP Sample Test 1"])
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("test_id", mode="before")
+    @classmethod
+    def transform_id_to_str(cls, v: Any) -> str:
+        return str(v)

@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import redis.asyncio as redis
+from datetime import date
 from app.core.deps import get_db, AuthorizedUser
 from app.core.redis import get_redis
 from app.schemas.quiz import TestAvailableRead, TestAvailableMinimalRead
@@ -36,4 +37,9 @@ async def get_test_detailed(
     test_av = await test_service.get_test_available_by_id_cached(db, redis_client, test_id=test_id)
     if not test_av:
         raise HTTPException(status_code=404, detail="Test not found")
+
+    # Populate user info and today's date
+    test_av["user_name"] = user.full_name
+    test_av["date"] = date.today().strftime("%Y-%m-%d")
+
     return test_av
