@@ -10,11 +10,15 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.exc import IntegrityError
 
+from datetime import datetime
 from app.api.v1.router import router as api_v1_router
 from app.api.v1.webhooks import router as webhooks_router
 from app.core.config import settings
 from app.core.redis import init_redis, close_redis
 from app.core.logger import logger
+
+# Record startup time for uptime calculations
+START_TIME = datetime.now()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from app.core.deps import get_authorized_user
 from app.api.v1 import (
     parts, sections, answer_sheets, test_results, users,
-    test_areas, check_db, admin, webhooks, test_available
+    test_areas, check_db, admin, webhooks, test_available, system_api
 )
 
 router = APIRouter()
@@ -19,4 +19,5 @@ router.include_router(users.router, prefix="/users", tags=["Users"])
 router.include_router(test_areas.router, prefix="/test-areas", tags=["Test Areas"], dependencies=[Depends(get_authorized_user)])
 router.include_router(check_db.router, prefix="/check-db", tags=["Check DB"], dependencies=[Depends(get_authorized_user)])
 router.include_router(admin.router, prefix="/admin", tags=["Admin"], dependencies=[Depends(get_authorized_user)])
+router.include_router(system_api.router, prefix="/system", tags=["System"], dependencies=[Depends(get_authorized_user)])
 router.include_router(webhooks.router, prefix="/webhooks", tags=["Webhooks"])
