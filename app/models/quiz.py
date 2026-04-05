@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 import enum
 
 from sqlalchemy import Integer, String, Text, ForeignKey, Enum, Table, Column
@@ -82,6 +82,14 @@ class TestArea(Base):
             return AreaTest(self.area_name.lower())
         except (ValueError, AttributeError):
             return AreaTest.LISTENING # Default placeholder
+
+    @area.setter
+    def area(self, value: Union[AreaTest, str]):
+        """Setter to update the area_name column."""
+        if isinstance(value, AreaTest):
+            self.area_name = value.value
+        else:
+            self.area_name = str(value)
 
     test_available: Mapped[List["TestAvailable"]] = relationship(
         "TestAvailable",

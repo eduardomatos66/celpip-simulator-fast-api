@@ -74,38 +74,40 @@ def check_orphan_entities(db: Session) -> dict:
     """Finds and deletes orphaned entities (no parents)."""
     deleted_counts = {}
 
-    # Options (orphan if not linked to any existing question)
-    valid_q_ids = {q.question_id for q in db.query(Question.question_id).all()}
-    orphaned_opts = [o for o in db.query(Option).all() if o.question_id not in valid_q_ids]
+    # Options (orphan if not linked to any existing question in question_options table)
+    from app.models.quiz import question_options, section_questions, part_sections, test_area_parts, test_available_test_areas
+
+    # Options
+    linked_option_ids = {row.options_option_id for row in db.query(question_options).all()}
+    orphaned_opts = [o for o in db.query(Option).all() if o.option_id not in linked_option_ids]
     if orphaned_opts:
-        # Note: in a real implementation we might just db.query().filter(Option.question_id.notin_()).delete()
         for o in orphaned_opts: db.delete(o)
         deleted_counts["options"] = len(orphaned_opts)
 
-    # Questions (orphan if not linked to any existing section)
-    valid_s_ids = {s.section_id for s in db.query(Section.section_id).all()}
-    orphaned_qs = [q for q in db.query(Question).all() if q.section_id not in valid_s_ids]
+    # Questions
+    linked_question_ids = {row.questions_question_id for row in db.query(section_questions).all()}
+    orphaned_qs = [q for q in db.query(Question).all() if q.question_id not in linked_question_ids]
     if orphaned_qs:
         for q in orphaned_qs: db.delete(q)
         deleted_counts["questions"] = len(orphaned_qs)
 
-    # Sections (orphan if not linked to part)
-    valid_p_ids = {p.part_id for p in db.query(Part.part_id).all()}
-    orphaned_secs = [s for s in db.query(Section).all() if s.part_id not in valid_p_ids]
+    # Sections
+    linked_section_ids = {row.sections_section_id for row in db.query(part_sections).all()}
+    orphaned_secs = [s for s in db.query(Section).all() if s.section_id not in linked_section_ids]
     if orphaned_secs:
         for s in orphaned_secs: db.delete(s)
         deleted_counts["sections"] = len(orphaned_secs)
 
-    # Parts (orphan if not linked to test_area)
-    valid_ta_p_ids = {ta.part_id for ta in db.query(TestArea.part_id).all() if ta.part_id}
-    orphaned_parts = [p for p in db.query(Part).all() if p.part_id not in valid_ta_p_ids]
+    # Parts
+    linked_part_ids = {row.parts_part_id for row in db.query(test_area_parts).all()}
+    orphaned_parts = [p for p in db.query(Part).all() if p.part_id not in linked_part_ids]
     if orphaned_parts:
         for p in orphaned_parts: db.delete(p)
         deleted_counts["parts"] = len(orphaned_parts)
 
-    # TestAreas (orphan if not linked to test_available)
-    valid_tests_ids = {t.test_id for t in db.query(TestAvailable.test_id).all()}
-    orphaned_tas = [ta for ta in db.query(TestArea).all() if ta.available_test_id not in valid_tests_ids]
+    # TestAreas
+    linked_area_ids = {row.test_areas_area_id for row in db.query(test_available_test_areas).all()}
+    orphaned_tas = [ta for ta in db.query(TestArea).all() if ta.test_area_id not in linked_area_ids]
     if orphaned_tas:
         for ta in orphaned_tas: db.delete(ta)
         deleted_counts["test_areas"] = len(orphaned_tas)

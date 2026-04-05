@@ -26,15 +26,15 @@ def test_quiz_hierarchy_creation(db_session):
     part = Part(part_number=1, part_name="Part 1: Listening to Problem Solving", time=100, introduction=intro)
 
     # Create section
-    section = Section(section_number=1, time=60, text="Read the following...", part=part)
+    section = Section(section_number=1, time=60, text="Read the following...", parts=[part])
 
     # Create question and options
-    question = Question(question_number=1, text="What is the main topic?", time=30, section=section)
-    option_1 = Option(text="Topic A", is_correct=True, question=question)
-    option_2 = Option(text="Topic B", is_correct=False, question=question)
+    question = Question(question_number=1, text="What is the main topic?", time=30, sections=[section])
+    option_1 = Option(text="Topic A", is_correct=True, questions=[question])
+    option_2 = Option(text="Topic B", is_correct=False, questions=[question])
 
     # Area Test linkage
-    test_area = TestArea(area=AreaTest.LISTENING, test_available=test, part=part)
+    test_area = TestArea(area_name=AreaTest.LISTENING, test_available=[test], parts=[part])
 
     db_session.add_all([test, test_area, intro, part, section, question, option_1, option_2])
     db_session.commit()
@@ -42,8 +42,8 @@ def test_quiz_hierarchy_creation(db_session):
     assert test.test_id is not None
     assert len(test.test_areas) == 1
     assert test.test_areas[0].area == AreaTest.LISTENING
-    assert test_area.part.part_name == "Part 1: Listening to Problem Solving"
-    assert len(test_area.part.sections) == 1
+    assert test_area.parts[0].part_name == "Part 1: Listening to Problem Solving"
+    assert len(test_area.parts[0].sections) == 1
     assert len(section.questions) == 1
     assert len(question.options) == 2
 

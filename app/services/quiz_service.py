@@ -22,7 +22,7 @@ def get_part_by_id(db: Session, part_id: int) -> Optional[Part]:
 def get_sections_by_part(db: Session, part_id: int) -> List[Section]:
     return db.query(Section).options(
         joinedload(Section.questions).joinedload(Question.options)
-    ).filter(Section.part_id == part_id).all()
+    ).join(Section.parts).filter(Part.part_id == part_id).all()
 
 @log_execution_time
 def get_section_by_id(db: Session, section_id: int) -> Optional[Section]:
@@ -38,7 +38,7 @@ def get_question_by_id(db: Session, question_id: int) -> Optional[Question]:
 
 @log_execution_time
 def get_options_by_question(db: Session, question_id: int) -> List[Option]:
-    return db.query(Option).filter(Option.question_id == question_id).all()
+    return db.query(Option).join(Option.questions).filter(Question.question_id == question_id).all()
 
 @log_execution_time
 def create_part(db: Session, part_in: "PartCreate") -> Part:

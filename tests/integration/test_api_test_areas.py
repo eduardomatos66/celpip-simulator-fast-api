@@ -7,7 +7,7 @@ async def test_test_areas_crud(client: AsyncClient):
     create_payload = {"area": "reading", "part_id": None}
     response = await client.post("/api/v1/test-areas", json=create_payload)
     assert response.status_code == 201
-    created_id = response.json()["test_area_id"]
+    created_id = response.json()["area_id"]
     assert created_id is not None
 
     # 2. Get All Check
@@ -18,7 +18,7 @@ async def test_test_areas_crud(client: AsyncClient):
     # 3. Get single
     response = await client.get(f"/api/v1/test-areas/{created_id}")
     assert response.status_code == 200
-    assert response.json()["test_area_id"] == created_id
+    assert response.json()["area_id"] == created_id
 
     # 4. Update
     update_payload = {"area": "writing", "part_id": None}

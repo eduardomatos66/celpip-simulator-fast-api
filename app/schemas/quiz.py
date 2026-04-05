@@ -38,7 +38,7 @@ class QuestionUpdate(QuestionBase):
 
 class QuestionRead(QuestionBase):
     question_id: Union[int, str] = Field(..., description="Unique identifier for the question")
-    question_number: int = Field(..., description="Ordered number of the question in its section", examples=[1])
+    question_number: Optional[int] = Field(None, description="Ordered number of the question in its section", examples=[1])
     options: Optional[List[OptionRead]] = Field(default_factory=list, description="List of options for this question")
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,7 +65,7 @@ class SectionUpdate(SectionBase):
 
 class SectionRead(SectionBase):
     section_id: str = Field(..., description="Unique identifier for the section")
-    section_number: int = Field(..., description="Ordered number of the section in its part", examples=[1])
+    section_number: Optional[int] = Field(None, description="Ordered number of the section in its part", examples=[1])
     introductions: Optional[List[str]] = Field(None, description="Optional list of introductions for the section")
     questions: List[QuestionRead] = Field([], description="List of questions in this section")
     model_config = ConfigDict(from_attributes=True)
@@ -108,9 +108,9 @@ class PartUpdate(PartBase):
 
 class PartRead(PartBase):
     part_id: int = Field(..., description="Unique identifier for the part")
-    part_number: int = Field(..., description="Ordered number of the part", examples=[1])
-    part_name: str = Field(..., description="Name of the part (e.g., 'Listening Part 1')", examples=["Part 1"])
-    questions_type: str = Field(..., description="Type of questions in this part (e.g., 'MCQ')", examples=["MCQ"])
+    part_number: Optional[int] = Field(None, description="Ordered number of the part", examples=[1])
+    part_name: Optional[str] = Field(None, description="Name of the part (e.g., 'Listening Part 1')", examples=["Part 1"])
+    questions_type: Optional[str] = Field(None, description="Type of questions in this part (e.g., 'MCQ')", examples=["MCQ"])
     introduction: Optional[PartIntroductionRead] = None
     sections: List[SectionRead] = Field([], description="List of sections in this part")
     model_config = ConfigDict(from_attributes=True)
@@ -131,7 +131,7 @@ class TestAreaRead(BaseModel):
         description="Unique identifier for the test area record",
         validation_alias=AliasChoices("area_id", "test_area_id")
     )
-    area_name: AreaTest = Field(..., description="The area of the test (LISTENING, READING, WRITING, SPEAKING)")
+    area: AreaTest = Field(..., description="The area of the test (LISTENING, READING, WRITING, SPEAKING)")
     time: Optional[int] = Field(None, description="Optional time for the test area")
     parts: List[PartRead] = Field([], description="The list of parts in this area")
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
@@ -141,9 +141,9 @@ class TestAreaRead(BaseModel):
     def transform_id_to_str(cls, v: Any) -> str:
         return str(v)
 
-    @field_validator("area_name", mode="before")
+    @field_validator("area", mode="before")
     @classmethod
-    def normalize_area_name(cls, v: Any) -> str:
+    def normalize_area(cls, v: Any) -> str:
         if isinstance(v, str):
             return v.lower()
         return v

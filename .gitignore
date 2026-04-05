@@ -102,3 +102,12 @@ $RECYCLE.BIN/
 !certs/*.pem
 *.key
 secrets/
+
+# Coverage
+coverage_report.txt
+failed_tests.txt
+final_coverage.txt
+final_coverage_passed.txt
+final_coverage_report.txt
+final_report.txt
+test_output.txt

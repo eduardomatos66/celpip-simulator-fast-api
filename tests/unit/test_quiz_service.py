@@ -12,16 +12,16 @@ def test_quiz_service_methods(db_session):
     db_session.add(part)
     db_session.flush()
 
-    section = Section(section_number=1, text="Section Text", part_id=part.part_id)
+    section = Section(section_number=1, text="Section Text", parts=[part])
     db_session.add(section)
     db_session.flush()
 
-    question = Question(question_number=1, text="Test Q?", section_id=section.section_id)
+    question = Question(question_number=1, text="Test Q?", sections=[section])
     db_session.add(question)
     db_session.flush()
 
-    option1 = Option(text="Opt 1", is_correct=True, question_id=question.question_id)
-    option2 = Option(text="Opt 2", is_correct=False, question_id=question.question_id)
+    option1 = Option(text="Opt 1", is_correct=True, questions=[question])
+    option2 = Option(text="Opt 2", is_correct=False, questions=[question])
     db_session.add_all([option1, option2])
     db_session.commit()
 

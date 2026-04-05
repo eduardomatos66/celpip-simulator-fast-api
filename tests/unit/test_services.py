@@ -26,15 +26,15 @@ def test_answer_scoring_service(db_session):
 
     test_av = TestAvailable(test_name="Mock CELPIP Test")
     part = Part(part_name="Listening Part 1")
-    sec = Section(part=part)
+    sec = Section(parts=[part])
     # Question 1
-    q1 = Question(section=sec)
-    opt1 = Option(text="Car", is_correct=True, question=q1)
-    opt2 = Option(text="Bike", is_correct=False, question=q1)
+    q1 = Question(sections=[sec])
+    opt1 = Option(text="Car", is_correct=True, questions=[q1])
+    opt2 = Option(text="Bike", is_correct=False, questions=[q1])
     # Question 2
-    q2 = Question(section=sec)
-    opt3 = Option(text="Apple", is_correct=True, question=q2)
-    opt4 = Option(text="Orange", is_correct=False, question=q2)
+    q2 = Question(sections=[sec])
+    opt3 = Option(text="Apple", is_correct=True, questions=[q2])
+    opt4 = Option(text="Orange", is_correct=False, questions=[q2])
 
     db_session.add_all([test_av, part, sec, q1, opt1, opt2, q2, opt3, opt4])
     db_session.commit()

@@ -5,7 +5,7 @@ from app.models.quiz import AreaTest, TestArea
 
 def test_create_get_delete_test_area(db_session):
     # Create
-    ta_in = TestAreaCreate(area=AreaTest.READING, part_id=None)
+    ta_in = TestAreaCreate(area=AreaTest.READING)
     created_ta = test_area_service.create_test_area(db_session, ta_in)
     assert created_ta.test_area_id is not None
     assert created_ta.area == AreaTest.READING
@@ -21,7 +21,7 @@ def test_create_get_delete_test_area(db_session):
     assert fetched_ta.test_area_id == created_ta.test_area_id
 
     # Update
-    ta_update = TestAreaUpdate(area=AreaTest.WRITING, part_id=None)
+    ta_update = TestAreaUpdate(area=AreaTest.WRITING)
     updated_ta = test_area_service.update_test_area(db_session, fetched_ta, ta_update)
     assert updated_ta.area == AreaTest.WRITING
 

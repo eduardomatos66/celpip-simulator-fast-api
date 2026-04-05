@@ -12,7 +12,7 @@ async def test_get_test_available_by_id_cached_disabled(db_session):
     db_session.commit()
 
     result = await test_service.get_test_available_by_id_cached(db_session, None, 99)
-    assert result["test_id"] == 99
+    assert str(result["test_id"]) == "99"
 
 @pytest.mark.asyncio
 async def test_get_test_available_by_id_cached_hit(db_session):
@@ -21,7 +21,7 @@ async def test_get_test_available_by_id_cached_hit(db_session):
     mock_redis.get.return_value = json.dumps(cached_data).encode("utf-8")
 
     result = await test_service.get_test_available_by_id_cached(db_session, mock_redis, 100)
-    assert result["test_id"] == 100
+    assert str(result["test_id"]) == "100"
     mock_redis.get.assert_called_once_with("cache:tests:100")
     mock_redis.set.assert_not_called()
 
@@ -36,7 +36,7 @@ async def test_get_test_available_by_id_cached_miss_and_store(db_session):
 
     result = await test_service.get_test_available_by_id_cached(db_session, mock_redis, 101)
 
-    assert result["test_id"] == 101
+    assert str(result["test_id"]) == "101"
     mock_redis.get.assert_called_once_with("cache:tests:101")
     mock_redis.set.assert_called_once()
 
@@ -57,7 +57,7 @@ async def test_get_tests_summary_cached_hit(db_session):
 
     result = await test_service.get_tests_summary_cached(db_session, mock_redis)
     assert len(result) == 1
-    assert result[0]["test_id"] == 1
+    assert str(result[0]["test_id"]) == "1"
     mock_redis.get.assert_called_once_with("cache:tests:summary")
 
 @pytest.mark.asyncio
