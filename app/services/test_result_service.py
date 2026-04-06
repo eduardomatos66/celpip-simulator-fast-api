@@ -1,15 +1,29 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
-from app.models.answer import TestResult, AnswerSheet
+from datetime import datetime
+from sqlalchemy.orm import Session, joinedload
+from app.models.answer import TestResult, AnswerSheet, OptionAnswer
 from app.core.decorators import log_execution_time
 
 @log_execution_time
 def get_results_for_user(db: Session, user_id: int) -> List[TestResult]:
-    return db.query(TestResult).filter(TestResult.user_id == user_id).all()
+    return db.query(TestResult).filter(TestResult.user_id == user_id).options(
+        joinedload(TestResult.test_available)
+    ).all()
 
 @log_execution_time
 def get_result_by_id(db: Session, result_id: int) -> Optional[TestResult]:
-    return db.query(TestResult).filter(TestResult.test_result_id == result_id).first()
+    return db.query(TestResult).filter(TestResult.test_result_id == result_id).options(
+        joinedload(TestResult.test_available)
+    ).first()
+
+@log_execution_time
+def get_result_details(db: Session, result_id: int) -> Optional[TestResult]:
+    result = db.query(TestResult).filter(TestResult.test_result_id == result_id).options(
+        joinedload(TestResult.test_available),
+        joinedload(TestResult.answer_sheet).joinedload(AnswerSheet.option_answers)
+    ).first()
+
+    return result
 
 @log_execution_time
 def delete_result(db: Session, result_id: int) -> bool:

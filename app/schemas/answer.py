@@ -57,7 +57,11 @@ class TestResultRead(TestResultBase):
     user_id: Optional[int] = Field(None, description="The user's ID")
     answer_sheet_id: Optional[int] = Field(None, description="The linked answer sheet ID")
     available_test_id: Optional[int] = Field(None, description="The linked test ID")
+    test_name: Optional[str] = Field(None, description="The name of the test")
     model_config = ConfigDict(from_attributes=True)
+
+class TestResultDetail(TestResultRead):
+    option_answers: List[OptionAnswerRead] = Field([], description="Detailed record of question-by-question answers")
 
 class TestResultRequest(BaseModel):
     test_id: int = Field(..., description="The ID of the test to analyze", examples=[1])

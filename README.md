@@ -40,6 +40,7 @@ cd celpip-simulator-fast-api
 python -m venv .venv
 # Windows
 .venv\Scripts\activate
+
 # macOS/Linux
 source .venv/bin/activate
 ```

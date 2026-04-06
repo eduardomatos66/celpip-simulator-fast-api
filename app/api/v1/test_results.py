@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.deps import get_db, AuthorizedUser
-from app.schemas.answer import TestResultRead, TestResultRequest
+from app.schemas.answer import TestResultRead, TestResultRequest, TestResultDetail
 from app.services import test_result_service, user_service
 
 router = APIRouter()
@@ -12,7 +12,20 @@ router = APIRouter()
     summary="Get My Test Results",
     description="Retrieve a historical list of all completed test results for the currently authenticated user. Includes skill-based scores and CLB levels.")
 def get_user_results(user: AuthorizedUser, db: Session = Depends(get_db)):
-    return test_result_service.get_results_for_user(db, user.id)
+    results = test_result_service.get_results_for_user(db, user.id)
+    return results
+
+@router.get("/{result_id}",
+    response_model=TestResultDetail,
+    summary="Get Test Result Details",
+    description="Retrieve full details for a specific test result, including answers.")
+def get_test_result_details(result_id: int, user: AuthorizedUser, db: Session = Depends(get_db)):
+    result = test_result_service.get_result_details(db, result_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Result not found")
+    if result.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this result")
+    return result
 
 @router.get("/user/{email}",
     response_model=List[TestResultRead],

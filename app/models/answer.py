@@ -63,7 +63,19 @@ class TestResult(Base):
     clb_max: Mapped[Optional[float]] = mapped_column(Float)
     clb_average: Mapped[Optional[float]] = mapped_column(Float)
 
-    result_date: Mapped[Optional[datetime]] = mapped_column("result_date", DateTime)
+    result_date: Mapped[Optional[datetime]] = mapped_column("result_date", DateTime, default=func.now())
+
+    @property
+    def test_name(self) -> Optional[str]:
+        if self.test_available:
+            return self.test_available.test_name
+        return None
+
+    @property
+    def option_answers(self) -> List["OptionAnswer"]:
+        if self.answer_sheet and self.answer_sheet.option_answers:
+            return self.answer_sheet.option_answers
+        return []
 
     available_test_id: Mapped[Optional[int]] = mapped_column(ForeignKey("test_available.available_test_id"))
     test_available: Mapped[Optional["TestAvailable"]] = relationship("TestAvailable")
@@ -72,6 +84,7 @@ class TestResult(Base):
     user: Mapped[Optional["User"]] = relationship("User")
 
     answer_sheet_id: Mapped[Optional[int]] = mapped_column(ForeignKey("answer_sheet.answer_sheet_id"))
+    answer_sheet: Mapped[Optional["AnswerSheet"]] = relationship("AnswerSheet")
 
     # We explicitly import string references for models to avoid circular imports below
     # Note: "User" and "TestAvailable" need to be mapped appropriately by SQLAlchemy
