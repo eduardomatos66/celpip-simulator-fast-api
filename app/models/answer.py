@@ -26,6 +26,9 @@ class AnswerSheet(Base):
         "OptionAnswer", back_populates="answer_sheet", cascade="all, delete-orphan"
     )
 
+    start_time: Mapped[Optional[str]] = mapped_column(String(255))
+    end_time: Mapped[Optional[str]] = mapped_column(String(255))
+
 
 class OptionAnswer(Base):
     __tablename__ = "option_answer"

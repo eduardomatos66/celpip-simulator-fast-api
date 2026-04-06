@@ -111,3 +111,5 @@ final_coverage_passed.txt
 final_coverage_report.txt
 final_report.txt
 test_output.txt
+
+tmp/

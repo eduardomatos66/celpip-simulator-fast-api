@@ -13,6 +13,7 @@ Below you will find the relevant project definitions, setup instructions, and te
 - **Migrations**: Alembic
 - **Caching**: Redis
 - **Data Validation**: Pydantic
+- **Evaluation**: Automated HTML-Aware Grading (MCQ)
 
 ## Project Architecture
 The project strictly follows a layered service-oriented architecture:
@@ -105,6 +106,7 @@ The project uses **Clerk** for all user authentication. It relies on signed JWT 
    - If the user exists, their local record is retrieved.
 3. **Requirement**: Ensure `CLERK_JWKS_URL` and `CLERK_AUDIENCE` are correctly set in your `.env` file.
 - **Webhooks**: See the [Webhooks Setup Guide](file:///e:/Workspace/celpip-simulator-fast-api/docs/webhooks_setup.md) for automated user provisioning.
+- **Scoring & Evaluation**: See the [Scoring and Evaluation Guide](file:///e:/Workspace/celpip-simulator-fast-api/docs/scoring_and_evaluation.md) for details on automated MCQ grading.
 
 ### Protected vs Public Routes
 

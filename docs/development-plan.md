@@ -1,7 +1,7 @@
 # CELPIP Simulator — FastAPI Development Plan
 
-**Version**: 1.3.0
-**Date**: 2026-03-25
+**Version**: 1.4.0
+**Date**: 2026-04-06
 **Status**: Completed/Ready
 
 ---
@@ -307,6 +307,7 @@ To achieve total feature parity with the Java API, three key missing components 
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.4.0 | 2026-04-06 | Phase 9 completion; robust MCQ evaluation with ID-to-Text resolution and HTML stripping. |
 | 1.3.0 | 2026-03-25 | 100% API Parity attained; added complex administrative and testing endpoints. |
 | 1.2.0 | 2026-03-22 | Phase 7 documentation update; added Check DB and Test Area CRUDs. |
 | 1.1.0 | 2026-03-22 | Phase 1 completed. Switched to pure Python `PyMySQL` driver. |
@@ -335,3 +336,24 @@ All unhandled or manually raised faults fallback to JSON responses taking this e
 2. **`RequestValidationError`**: Maps 422 Pydantic type-failures to standard schemas.
 3. **`IntegrityError`**: Captures SQLAlchemy DB conflict exceptions, protecting actual schema details while yielding a safe **409 Conflict**.
 4. **`Exception`**: The ultimate fallback. Muffles unhandled panics and outputs a safe **500 Server Error** without leaking stack traces.
+
+---
+
+## Phase 9 — Robust Evaluation & Scoring Metadata
+
+Finalized the automated evaluation engine to handle real-world CELPIP data quirks (HTML tags) and various frontend submission formats (IDs vs Text).
+
+### Key Features
+- **ID-to-Text Resolution**: Automatically maps numeric option IDs from the frontend to their corresponding text representation in the database before storage and scoring.
+- **HTML-Aware Grading**: Implemented a robust text-cleaning service that strips HTML tags and normalizes whitespace for 100% accurate string comparison.
+- **Traceable Scoring**: Each answer is dynamically mapped to its parent `TestArea` (Listening/Reading) by tracing through sections and parts.
+
+### Files Added/Modified
+- [MODIFY] `app/services/answer_sheet_service.py` — Resolution logic added.
+- [MODIFY] `app/services/test_result_service.py` — Scoring engine and area mapping added.
+- [NEW] `docs/scoring_and_evaluation.md` — Detailed scoring documentation.
+
+### Commit
+```
+git commit -m "feat: implement robust MCQ evaluation with HTML-aware scoring and area mapping"
+```

@@ -25,12 +25,16 @@ class AnswerSheetBase(BaseModel):
 
 class AnswerSheetCreate(AnswerSheetBase):
     option_answers: List[OptionAnswerCreate] = Field([], description="List of individual question answers")
+    start_time: Optional[str] = Field(None, description="Test start time ISO string", examples=["2024-03-20T10:00:00Z"])
+    end_time: Optional[str] = Field(None, description="Test end time ISO string", examples=["2024-03-20T11:00:00Z"])
 
 class AnswerSheetRead(AnswerSheetBase):
     answer_sheet_id: int = Field(..., description="Unique identifier for the answer sheet")
     user_id: int = Field(..., description="Owner's user ID")
     date: datetime = Field(..., description="Submission timestamp")
     option_answers: List[OptionAnswerRead] = Field([], description="Detailed record of question-by-question answers")
+    start_time: Optional[str] = Field(None, description="Test start time ISO string")
+    end_time: Optional[str] = Field(None, description="Test end time ISO string")
     model_config = ConfigDict(from_attributes=True)
 
 # --- Test Result ---
