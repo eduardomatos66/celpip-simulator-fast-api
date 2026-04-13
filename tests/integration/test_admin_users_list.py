@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.orm import Session
-from app.models.user import User, UserStatus
+from app.models.user import User, UserStatus, UserRole
 from app.main import app
 from app.core.deps import get_current_user_claims
 
@@ -12,6 +12,7 @@ async def test_get_all_users_admin(client: AsyncClient, db_session: Session):
         full_name="Admin One",
         email="admin@example.com",
         clerk_id="admin_1",
+        role=UserRole.ADMIN,
         is_admin=True,
         status=UserStatus.APPROVED
     )
@@ -54,6 +55,7 @@ async def test_get_all_users_non_admin(client: AsyncClient, db_session: Session)
         full_name="Admin",
         email="admin@example.com",
         clerk_id="admin_clerk",
+        role=UserRole.ADMIN,
         is_admin=True,
         status=UserStatus.APPROVED
     )
@@ -91,6 +93,7 @@ async def test_revoke_user_flow(client: AsyncClient, db_session: Session):
         full_name="Admin",
         email="admin@example.com",
         clerk_id="admin_clerk",
+        role=UserRole.ADMIN,
         is_admin=True,
         status=UserStatus.APPROVED
     )

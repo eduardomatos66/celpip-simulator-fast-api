@@ -18,6 +18,12 @@ class UserStatus(str, enum.Enum):
     REJECTED = "REJECTED"
 
 
+class UserRole(str, enum.Enum):
+    USER = "USER"
+    EDITOR = "EDITOR"
+    ADMIN = "ADMIN"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -31,6 +37,9 @@ class User(Base):
     # Authorisation logic
     status: Mapped[UserStatus] = mapped_column(
         Enum(UserStatus), default=UserStatus.PENDING, nullable=False
+    )
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole), default=UserRole.USER, nullable=False
     )
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 

@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.models.user import User, UserStatus
+from app.models.user import User, UserStatus, UserRole
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.decorators import log_execution_time
 from app.core.config import settings
@@ -69,6 +69,7 @@ def get_or_create_user(db: Session, clerk_id: str, email: str, full_name: str) -
         if first_user:
             # Bootstrap first user as authorized admin
             user.is_admin = True
+            user.role = UserRole.ADMIN
             user.status = UserStatus.APPROVED
             user.authorized_at = datetime.now()
             db.commit()
@@ -172,6 +173,7 @@ def _sync_user_to_clerk(user: User):
     # Map our local status to public metadata
     metadata = {
         "status": user.status,
+        "role": user.role,
         "is_admin": user.is_admin
     }
 
@@ -200,4 +202,8 @@ def update_user(db: Session, user_id: int, user_in: UserUpdate) -> Optional[User
             setattr(user, field, value)
         db.commit()
         db.refresh(user)
+
+        # Sync with Clerk if specific fields changed
+        if "status" in update_data or "role" in update_data or "is_admin" in update_data:
+            _sync_user_to_clerk(user)
     return user

@@ -24,7 +24,7 @@ async def test_test_areas_crud(client: AsyncClient):
     update_payload = {"area": "writing", "part_id": None}
     response = await client.put(f"/api/v1/test-areas/{created_id}", json=update_payload)
     assert response.status_code == 200
-    assert response.json()["area"] == "writing"
+    assert response.json()["area_name"] == "writing"
 
     # 5. Delete
     response = await client.delete(f"/api/v1/test-areas/{created_id}")

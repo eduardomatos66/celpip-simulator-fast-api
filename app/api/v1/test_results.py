@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.core.deps import get_db, AuthorizedUser
+from app.core.deps import get_db, AuthorizedUser, EditorUser
 from app.schemas.answer import TestResultRead, TestResultRequest, TestResultDetail
 from app.services import test_result_service, user_service
 
@@ -42,7 +42,7 @@ def get_user_results_by_email(email: str, db: Session = Depends(get_db)):
     summary="Delete Test Result",
     description="Permanently remove a test result from the user's history. Access is restricted to the owner of the result.",
     responses={403: {"description": "Not authorized to delete this result"}, 404: {"description": "Result not found"}})
-def delete_test_result(result_id: int, user: AuthorizedUser, db: Session = Depends(get_db)):
+def delete_test_result(result_id: int, user: EditorUser, db: Session = Depends(get_db)):
     result = test_result_service.get_result_by_id(db, result_id)
     if not result:
         raise HTTPException(status_code=404, detail="Result not found")

@@ -101,7 +101,7 @@ async def get_current_user(
     return user
 
 
-from app.models.user import User, UserStatus
+from app.models.user import User, UserStatus, UserRole
 
 
 async def get_authorized_user(
@@ -128,7 +128,7 @@ async def get_admin_user(
     """
     Ensure the user has admin privileges.
     """
-    if not user.is_admin:
+    if user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required.",
@@ -136,6 +136,21 @@ async def get_admin_user(
     return user
 
 
+async def get_editor_user(
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    """
+    Ensure the user has Editor or Admin privileges.
+    """
+    if user.role not in [UserRole.ADMIN, UserRole.EDITOR]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions.",
+        )
+    return user
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
 AuthorizedUser = Annotated[User, Depends(get_authorized_user)]
+EditorUser = Annotated[User, Depends(get_editor_user)]
 AdminUser = Annotated[User, Depends(get_admin_user)]
