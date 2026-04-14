@@ -85,9 +85,9 @@ class TestResultRead(TestResultBase):
             elif percent >= 0.86: self.listening = 9
             elif percent >= 0.78: self.listening = 8
             elif percent >= 0.71: self.listening = 7
-            elif percent >= 0.58: self.listening = 6
+            elif percent >= 0.57: self.listening = 6
             elif percent >= 0.44: self.listening = 5
-            elif percent >= 0.29: self.listening = 4
+            elif percent >= 0.28: self.listening = 4
             else: self.listening = 3 if self.listening_corrects > 0 else 0
 
         if self.reading_corrects is not None and self.reading_max and self.reading_max > 0:
@@ -96,9 +96,9 @@ class TestResultRead(TestResultBase):
             elif percent >= 0.86: self.reading = 9
             elif percent >= 0.78: self.reading = 8
             elif percent >= 0.71: self.reading = 7
-            elif percent >= 0.58: self.reading = 6
+            elif percent >= 0.57: self.reading = 6
             elif percent >= 0.44: self.reading = 5
-            elif percent >= 0.29: self.reading = 4
+            elif percent >= 0.28: self.reading = 4
             else: self.reading = 3 if self.reading_corrects > 0 else 0
 
         return self

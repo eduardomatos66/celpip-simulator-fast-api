@@ -46,9 +46,9 @@ def _compute_clb_listening_reading(score: int, max_score: float) -> int:
     if percent >= 0.86: return 9
     if percent >= 0.78: return 8
     if percent >= 0.71: return 7
-    if percent >= 0.58: return 6
+    if percent >= 0.57: return 6
     if percent >= 0.44: return 5
-    if percent >= 0.29: return 4
+    if percent >= 0.28: return 4
     return 3 if score > 0 else 0
 
 import re
