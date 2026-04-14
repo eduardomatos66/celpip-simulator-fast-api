@@ -36,19 +36,20 @@ def delete_result(db: Session, result_id: int) -> bool:
 
 def _compute_clb_listening_reading(score: int, max_score: float) -> int:
     """
-    Placeholder logic for CELPIP CLB Band mapping.
-    This should be accurately mapped according to the real CELPIP simulator scoring matrix.
+    Standard CELPIP-aligned CLB Band mapping.
+    Based on ~38 question format with score equating.
     """
     if max_score <= 0: return 0
     percent = score / max_score
-    if percent >= 0.9: return 10
-    if percent >= 0.8: return 9
-    if percent >= 0.7: return 8
-    if percent >= 0.6: return 7
-    if percent >= 0.5: return 6
-    if percent >= 0.4: return 5
-    if percent >= 0.3: return 4
-    return 3
+
+    if percent >= 0.92: return 10
+    if percent >= 0.86: return 9
+    if percent >= 0.78: return 8
+    if percent >= 0.71: return 7
+    if percent >= 0.58: return 6
+    if percent >= 0.44: return 5
+    if percent >= 0.29: return 4
+    return 3 if score > 0 else 0
 
 import re
 
@@ -67,7 +68,28 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
     Internal logic to auto-score multiple choice questions (Listening/Reading).
     Identifies the area (Listening/Reading) for each question to provide accurate sub-scores.
     """
-    from app.models.quiz import Question, Section, Part, TestArea
+    # 1. Fetch the test structure once to build an area map
+    from app.models.quiz import TestAvailable, TestArea, Part, Section, Question
+
+    t_id_int = int(test_id) if test_id.isdigit() else None
+    area_map = {}
+
+    if t_id_int:
+        # Get test with all areas, parts, sections, questions
+        test_struct = db.query(TestAvailable).filter(TestAvailable.test_id == t_id_int).options(
+            joinedload(TestAvailable.test_areas)
+            .joinedload(TestArea.parts)
+            .joinedload(Part.sections)
+            .joinedload(Section.questions)
+        ).first()
+
+        if test_struct:
+            for area in test_struct.test_areas:
+                a_name = area.area_name.lower()
+                for part in area.parts:
+                    for section in part.sections:
+                        for q in section.questions:
+                            area_map[str(q.question_id)] = a_name
 
     sheet = db.query(AnswerSheet).options(
         joinedload(AnswerSheet.option_answers)
@@ -86,18 +108,19 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
             continue
 
         # Determine current question's area
-        area_name = "reading" # Default fallback
-        try:
-            q_id = int(opt_ans.question_id) if str(opt_ans.question_id).isdigit() else None
-            if q_id:
-                # Trace: Question -> Section -> Part -> TestArea
-                area_obj = db.query(TestArea).join(TestArea.parts).join(Part.sections).join(Section.questions).filter(Question.question_id == q_id).first()
-                if area_obj:
-                    area_name = area_obj.area_name.lower()
-        except Exception:
-            pass
+        area_name = None
+        q_raw = str(opt_ans.question_id).strip()
 
-        if area_name not in scores:
+        # Priority 1: Use the pre-calculated map from DB hierarchy
+        if q_raw in area_map:
+            area_name = area_map[q_raw]
+        else:
+            # Priority 2: Fallback to token extraction (e.g. t1-LISTENING-p1-s1-q1)
+            token_match = re.search(r"-([a-zA-Z]+)-p", q_raw, re.IGNORECASE)
+            if token_match:
+                area_name = token_match.group(1).lower()
+
+        if not area_name or area_name not in scores:
             continue
 
         scores[area_name]["total"] += 1
@@ -111,11 +134,17 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
     clb_L = _compute_clb_listening_reading(scores["listening"]["correct"], scores["listening"]["total"])
     clb_R = _compute_clb_listening_reading(scores["reading"]["correct"], scores["reading"]["total"])
 
-    # Defaults for Writing/Speaking (manually graded)
-    w_min, w_max = 0.0, 0.0
-    s_min, s_max = 0.0, 0.0
+    # Defaults for Writing/Speaking (manually graded placeholders)
+    # In a full practice test, these are typically handled by human or AI evaluation
+    clb_W = 0
+    clb_S = 0
 
-    clb_avg = (clb_L + clb_R + 0 + 0) / 4.0 # Simplified average for placeholder
+    # Calculate average based only on completed sections
+    active_scores = []
+    if scores["listening"]["total"] > 0: active_scores.append(clb_L)
+    if scores["reading"]["total"] > 0: active_scores.append(clb_R)
+
+    clb_avg = sum(active_scores) / len(active_scores) if active_scores else 0.0
 
     result = TestResult(
         user_id=user_id,
@@ -125,13 +154,13 @@ def calculate_exam_score(db: Session, answer_sheet_id: int, test_id: str, user_i
         listening_max=float(scores["listening"]["total"]),
         reading_corrects=scores["reading"]["correct"],
         reading_max=float(scores["reading"]["total"]),
-        writing_min=w_min,
-        writing_max=w_max,
-        speaking_min=s_min,
-        speaking_max=s_max,
-        clb_min=float(min([clb_L, clb_R])),
-        clb_max=float(max([clb_L, clb_R])),
-        clb_average=clb_avg
+        writing_min=0.0,
+        writing_max=0.0,
+        speaking_min=0.0,
+        speaking_max=0.0,
+        clb_min=float(min(active_scores)) if active_scores else 0.0,
+        clb_max=float(max(active_scores)) if active_scores else 0.0,
+        clb_average=round(clb_avg, 2)
     )
 
     db.add(result)

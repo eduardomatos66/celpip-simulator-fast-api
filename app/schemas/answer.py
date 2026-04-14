@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.schemas.quiz import TestAvailableRead
 from app.schemas.user import UserRead
 
@@ -62,7 +62,46 @@ class TestResultRead(TestResultBase):
     answer_sheet_id: Optional[int] = Field(None, description="The linked answer sheet ID")
     available_test_id: Optional[int] = Field(None, description="The linked test ID")
     test_name: Optional[str] = Field(None, description="The name of the test")
+
+    # Frontend compatibility aliases
+    test_available_name: Optional[str] = Field(None, description="Alias for test_name")
+    date: Optional[datetime] = Field(None, description="Alias for result_date")
+    listening: Optional[int] = Field(None, description="CLB level for Listening")
+    reading: Optional[int] = Field(None, description="CLB level for Reading")
+
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode="after")
+    def populate_aliases(self) -> "TestResultRead":
+        if self.test_name and not self.test_available_name:
+            self.test_available_name = self.test_name
+        if self.result_date and not self.date:
+            self.date = self.result_date
+
+        # Calculate CLB levels if missing (for frontend compatibility)
+        if self.listening_corrects is not None and self.listening_max and self.listening_max > 0:
+            percent = self.listening_corrects / self.listening_max
+            if percent >= 0.92: self.listening = 10
+            elif percent >= 0.86: self.listening = 9
+            elif percent >= 0.78: self.listening = 8
+            elif percent >= 0.71: self.listening = 7
+            elif percent >= 0.58: self.listening = 6
+            elif percent >= 0.44: self.listening = 5
+            elif percent >= 0.29: self.listening = 4
+            else: self.listening = 3 if self.listening_corrects > 0 else 0
+
+        if self.reading_corrects is not None and self.reading_max and self.reading_max > 0:
+            percent = self.reading_corrects / self.reading_max
+            if percent >= 0.92: self.reading = 10
+            elif percent >= 0.86: self.reading = 9
+            elif percent >= 0.78: self.reading = 8
+            elif percent >= 0.71: self.reading = 7
+            elif percent >= 0.58: self.reading = 6
+            elif percent >= 0.44: self.reading = 5
+            elif percent >= 0.29: self.reading = 4
+            else: self.reading = 3 if self.reading_corrects > 0 else 0
+
+        return self
 
 class TestResultDetail(TestResultRead):
     option_answers: List[OptionAnswerRead] = Field([], description="Detailed record of question-by-question answers")

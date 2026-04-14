@@ -3,6 +3,7 @@ CELPIP Simulator API — FastAPI Application Entry Point.
 """
 
 from contextlib import asynccontextmanager
+import asyncio
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,9 +25,14 @@ START_TIME = datetime.now()
 async def lifespan(app: FastAPI):
     # Startup
     await init_redis()
-    yield
-    # Shutdown
-    await close_redis()
+    try:
+        yield
+    except asyncio.CancelledError:
+        logger.info("Lifespan task cancelled, shutting down...")
+    finally:
+        # Shutdown
+        await close_redis()
+        logger.info("Lifespan shutdown complete.")
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
